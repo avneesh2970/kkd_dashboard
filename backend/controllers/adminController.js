@@ -4,6 +4,7 @@ import cloudinary from "../helpers/cloudinary/cloudinary.js";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
 import WithdrawalRequest from "../models/WithdrawalRequest.js";
+import { isValidNonNegativeNumber } from "../helpers/utils/helperFunctions/index.js";
 
 export const login = (req, res) => {
   const { emailOrPhone, password } = req.body;
@@ -847,3 +848,34 @@ export const updateWithdrawalRequestStatus = async (req, res) => {
 //     res.status(500).json({ message: "Error fetching user's requests" });
 //   }
 // };
+
+export const updateUserCoin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { coinsEarned } = req.body;
+    if (!id || !coinsEarned) {
+      return res.status(404).json({
+        message: "please provide the required info",
+      });
+    }
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "user not found" });
+    }
+    const isValidCoin = isValidNonNegativeNumber(coinsEarned);
+    if (!isValidCoin) {
+      return res
+        .status(400)
+        .json({ message: "please provide valid coin amount" });
+    }
+    user.coinsEarned = coinsEarned;
+    user.save();
+    return res.status(200).json({
+      success: true,
+      message: "coins updated Successfully",
+    });
+  } catch (error) {
+    console.error("Error updating user coins", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

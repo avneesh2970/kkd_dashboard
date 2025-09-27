@@ -13,6 +13,8 @@ export default function Users() {
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
+  const [coinsPopupOpen, setCoinsPopupOpen] = useState(false);
+  const [newCoins, setNewCoins] = useState("");
   const [error, setError] = useState(null);
   const usersPerPage = 9;
 
@@ -210,6 +212,43 @@ export default function Users() {
     setSearchTerm("");
     setCurrentPage(1);
   }, []);
+
+  const handleSaveCoins = async () => {
+    try {
+      // API call to update coins
+      const response = await api.put(
+        `/api/admin/update-user-coins/${selectedUser.id}`,
+        {
+          coinsEarned: parseInt(newCoins),
+        }
+      );
+
+      if (response.data.success) {
+        // Update the local state
+        setUsers((prevUsers) =>
+          prevUsers.map((user) =>
+            user.id === selectedUser.id
+              ? { ...user, coinsEarned: parseInt(newCoins) }
+              : user
+          )
+        );
+
+        // Update selected user
+        setSelectedUser((prev) => ({
+          ...prev,
+          coinsEarned: parseInt(newCoins),
+        }));
+
+        // Close popup
+        setCoinsPopupOpen(false);
+
+        alert("Coins updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error updating coins:", error);
+      alert("Failed to update coins");
+    }
+  };
 
   const handleViewDocument = useCallback((documentUrl, documentType) => {
     if (documentUrl && documentUrl !== "Not provided") {
@@ -1070,13 +1109,24 @@ export default function Users() {
                         <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                           <div className="flex items-center space-x-2">
                             <span className="text-2xl">🪙</span>
-                            <div>
+                            <div className="w-full">
                               <p className="text-sm text-gray-600">
                                 Coins Earned
                               </p>
-                              <p className="text-lg font-semibold text-green-600">
-                                {selectedUser.coinsEarned}
-                              </p>
+                              <div className="flex w-full justify-between items-center">
+                                <p className="text-lg font-semibold text-green-600">
+                                  {selectedUser.coinsEarned}
+                                </p>
+                                <button
+                                  className="ml-3 sm:ml-6 px-2 py-0.5 border border-green-500 text-xs sm:text-sm rounded cursor-pointer text-green-500 hover:bg-green-200 font-semibold"
+                                  onClick={() => {
+                                    setCoinsPopupOpen(true);
+                                    setNewCoins(selectedUser.coinsEarned);
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1195,6 +1245,42 @@ export default function Users() {
           </div>
         )}
       </div>
+      {/* popup  */}
+      {coinsPopupOpen && (
+        <div className="backdrop-blur-sm fixed inset-0 bg-black/65 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+            <h2 className="text-lg font-semibold mb-4">Edit Coins</h2>
+
+            {/* Input field for coins */}
+            <input
+              type="number"
+              value={newCoins}
+              onChange={(e) => setNewCoins(e.target.value)}
+              className="w-full px-3 py-2 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Enter coins"
+            />
+
+            {/* Buttons */}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setCoinsPopupOpen(false);
+                  setNewCoins(selectedUser.coinsEarned);
+                }}
+                className="px-4 py-2 bg-gray-300 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveCoins}
+                className="px-4 py-2 bg-green-500 text-white rounded"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -18,6 +18,7 @@ import {
   checkProductId,
   getAllWithdrawalRequests,
   updateWithdrawalRequestStatus,
+  updateUserCoin,
 } from "../controllers/adminController.js";
 import { authenticateAdmin } from "../middlewares/adminAuthMiddleware.js";
 import uploadCategory from "../middlewares/uploads/category.js";
@@ -152,6 +153,7 @@ adminRouter.get(
 );
 
 adminRouter.patch("/withdrawals/:id/status", authenticateAdmin, updateWithdrawalRequestStatus); 
+adminRouter.put("/update-user-coins/:id", authenticateAdmin, updateUserCoin);
 
 // 🚀 NEW: QR Testing Route for Admin
 adminRouter.post("/test-qr-scan", authenticateAdmin, testQRScan);
