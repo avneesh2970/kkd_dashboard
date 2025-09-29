@@ -24,13 +24,14 @@ export default function Products() {
     productName: "",
     categoryId: "",
     coinReward: "",
+    qrCount:"",
     productImage: null,
   });
   const [imagePreview, setImagePreview] = useState(null);
 
   // Details modal state
   const [selectedProduct, setSelectedProduct] = useState(null);
-  console.log("selectedProduct: ", selectedProduct);
+
   const popupRef = useRef(null);
 
   // Fetch initial data (products and categories)
@@ -92,6 +93,7 @@ export default function Products() {
       productName: "",
       categoryId: "",
       coinReward: "",
+      qrCount:"",
       productImage: null,
     });
     setImagePreview(null);
@@ -101,10 +103,12 @@ export default function Products() {
   const openPopup = (product = null) => {
     if (product) {
       setEditingProduct(product);
+      console.log("....", product)
       setFormData({
         productName: product.productName,
         categoryId: product.category._id,
         coinReward: product.coinReward,
+        qrCount: product.qrCodes.length,
         productImage: null, // Not editing image by default
       });
       setImagePreview(product.productImage);
@@ -126,6 +130,10 @@ export default function Products() {
       toast.error("Please select a category.");
       return;
     }
+    if (!formData.qrCount) {
+      toast.error("Please Provide the QR Count");
+      return;
+    }
     if (!editingProduct && !formData.productImage) {
       toast.error("Please upload a product image.");
       return;
@@ -136,6 +144,7 @@ export default function Products() {
     payload.append("productName", formData.productName);
     payload.append("categoryId", formData.categoryId);
     payload.append("coinReward", formData.coinReward);
+    payload.append("qrCount", formData.qrCount);
     if (formData.productImage) {
       payload.append("productImage", formData.productImage);
     }
@@ -450,6 +459,21 @@ export default function Products() {
                   ))}
                 </select>
               </div>
+                 <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    QR Count
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    name="qrCount"
+                    value={formData.qrCount}
+                    onChange={handleInputChange}
+                    required
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
+                  />
+                </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Product Image

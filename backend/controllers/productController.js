@@ -5,6 +5,7 @@ import cloudinary from "../helpers/cloudinary/cloudinary.js";
 import { customAlphabet } from "nanoid";
 import qrcode from "qrcode";
 import Offer from "../models/OfferProduct.js";
+import { isValidQrCount } from "../helpers/utils/helperFunctions/index.js";
 
 const generateProductId = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -220,13 +221,22 @@ export const getFeaturedProducts = async (req, res) => {
 };
 
 export const addProduct = async (req, res) => {
+  console.log("add product api hit successfull");
   try {
-    const { productName, categoryId, coinReward, description } = req.body;
+    const { productName, categoryId, coinReward, description, qrCount } =
+      req.body;
+
     if (!productName || !categoryId || !coinReward || !req.file) {
       return res.status(400).json({
         success: false,
         message: "Product name, category, coin reward, and image are required.",
       });
+    }
+
+    if (!isValidQrCount(qrCount)) {
+      return res
+        .status(400)
+        .json({ message: "qrCount must be a number between 1 and 50" });
     }
 
     const category = await Category.findById(categoryId);
@@ -237,18 +247,30 @@ export const addProduct = async (req, res) => {
     }
 
     const productId = `PROD_${generateProductId()}`;
-    const now = Date.now();
-    const qrData = {
-      productId,
-      type: "PRODUCT_QR",
-      timestamp: now,
-      hash: Buffer.from(`${productId}-${now}-KKD_SECRET`)
-        .toString("base64")
-        .slice(0, 16),
-    };
-    const qrCodeImage = await uploadQRToCloudinary(JSON.stringify(qrData));
-    // generate encrypted code
-    const qrCode = generateProductId();
+    const qrCodes = [];
+    const count = qrCount && qrCount > 0 ? parseInt(qrCount) : 1;
+
+    for (let i = 0; i < count; i++) {
+      const now = Date.now();
+      const qrData = {
+        productId,
+        type: "PRODUCT_QR",
+        index: i,
+        timestamp: now,
+        hash: Buffer.from(`${productId}-${now}-${i}-KKD_SECRET`)
+          .toString("base64")
+          .slice(0, 16),
+      };
+
+      const qrCodeImage = await uploadQRToCloudinary(JSON.stringify(qrData));
+      const qrCode = generateProductId(); // unique code string
+
+      qrCodes.push({
+        qrCodeImage,
+        qrCode,
+        qrStatus: "active",
+      });
+    }
 
     const newProduct = new Product({
       productId,
@@ -257,8 +279,9 @@ export const addProduct = async (req, res) => {
       category: categoryId,
       coinReward,
       productImage: req.file.path,
-      qrCodeImage,
-      qrCode,
+      qrCodes,
+      qrCodeImage: "please refer to updated api to get the qrImage",
+      qrCode: "please refer to updated api to get the qrCode",
     });
 
     await newProduct.save();
@@ -267,7 +290,7 @@ export const addProduct = async (req, res) => {
       success: true,
       message: "Product added successfully with a unique QR code.",
       data: newProduct,
-      meta: { qrCode },
+      meta: { qrCode: "not available is this api version" },
     });
   } catch (error) {
     console.error("Add Product Error:", error);
@@ -275,7 +298,54 @@ export const addProduct = async (req, res) => {
   }
 };
 
+/* add more qr code to the existing product */
+// export const addQrToProduct = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { qrCount } = req.body;
+
+//     const product = await Product.findById(id);
+//     if (!product) {
+//       return res.status(404).json({ success: false, message: "Product not found." });
+//     }
+
+//     const newQrs = [];
+//     const count = qrCount && qrCount > 0 ? parseInt(qrCount) : 1;
+
+//     for (let i = 0; i < count; i++) {
+//       const now = Date.now();
+//       const qrData = {
+//         productId: product.productId,
+//         type: "PRODUCT_QR",
+//         index: product.qrCodes.length + i,
+//         timestamp: now,
+//         hash: Buffer.from(`${product.productId}-${now}-${i}-KKD_SECRET`)
+//           .toString("base64")
+//           .slice(0, 16),
+//       };
+
+//       const qrCodeImage = await uploadQRToCloudinary(JSON.stringify(qrData));
+//       const qrCode = generateProductId();
+
+//       newQrs.push({ qrCodeImage, qrCode, qrStatus: "active" });
+//     }
+
+//     product.qrCodes.push(...newQrs);
+//     await product.save();
+
+//     res.status(200).json({
+//       success: true,
+//       message: `${count} QR code(s) added successfully.`,
+//       data: product,
+//     });
+//   } catch (error) {
+//     console.error("Add QR Error:", error);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
 // 🚀 ADMIN: Get all products
+
 export const getAllProducts = async (req, res) => {
   try {
     const products = await Product.find()
@@ -528,9 +598,8 @@ export const testQRScan = async (req, res) => {
 export const scanProductQR = async (req, res) => {
   try {
     const { qrData, code } = req.body;
-
     if (!qrData && !code) {
-      console.log( qrData, code )
+      console.log(qrData, code);
       return res.status(400).json({
         success: false,
         message: "QR data or code is required.",
@@ -671,7 +740,10 @@ export const scanProductQR = async (req, res) => {
       let isOfferProduct = false;
 
       if (!product) {
-        product = await Offer.findOne({ qrCode: code }).populate("scannedBy", "fullName");
+        product = await Offer.findOne({ qrCode: code }).populate(
+          "scannedBy",
+          "fullName"
+        );
         isOfferProduct = true;
       }
 
@@ -754,3 +826,120 @@ export const scanProductQR = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+// Helper to find QR object inside product
+// function findQrCode(product, code) {
+//   return product.qrCodes.find(qr => qr.code === code);
+// }
+
+// export const scanProductQR = async (req, res) => {
+//   try {
+//     const { qrData, code } = req.body;
+
+//     if (!qrData && !code) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "QR data or code is required.",
+//       });
+//     }
+
+//     const userId = req.user.userId;
+
+//     // STEP 1: Parse QR data if it's JSON
+//     let parsedData = qrData;
+//     if (qrData && typeof qrData === "string") {
+//       try {
+//         parsedData = JSON.parse(qrData);
+//       } catch (err) {
+//         return res.status(400).json({ success: false, message: "Invalid QR data format." });
+//       }
+//     }
+
+//     // STEP 2: Validate QR data structure
+//     const productId = parsedData?.productId || null;
+
+//     let product = null;
+//     let isOfferProduct = false;
+
+//     if (productId) {
+//       product = await Product.findOne({ productId }).populate("qrCodes.scannedBy", "fullName");
+//       if (!product) {
+//         product = await Offer.findOne({ productId }).populate("qrCodes.scannedBy", "fullName");
+//         isOfferProduct = true;
+//       }
+//     } else if (code) {
+//       product = await Product.findOne({ "qrCodes.code": code }).populate("qrCodes.scannedBy", "fullName");
+//       if (!product) {
+//         product = await Offer.findOne({ "qrCodes.code": code }).populate("qrCodes.scannedBy", "fullName");
+//         isOfferProduct = true;
+//       }
+//     }
+
+//     if (!product) {
+//       return res.status(404).json({ success: false, message: "Product not found. Invalid QR code." });
+//     }
+
+//     // STEP 3: Get specific QR object
+//     const qrCode = code ? findQrCode(product, code) : findQrCode(product, parsedData.qrCode);
+
+//     if (!qrCode) {
+//       return res.status(400).json({ success: false, message: "QR code not found in product." });
+//     }
+
+//     // STEP 4: Check QR status
+//     if (qrCode.status !== "active") {
+//       if (qrCode.status === "scanned") {
+//         return res.status(200).json({
+//           success: false,
+//           scanned: true,
+//           message: "This QR code has already been used.",
+//           data: {
+//             scannedByName: qrCode.scannedBy?.fullName || "Unknown",
+//             scannedAt: qrCode.scannedAt,
+//             productName: product.productName,
+//             productImage: product.productImage,
+//           },
+//         });
+//       }
+//       return res.status(400).json({ success: false, message: "This QR code is inactive." });
+//     }
+
+//     // STEP 5: Update QR status
+//     const user = await User.findOne({ userId });
+//     if (!user) return res.status(404).json({ success: false, message: "User not found." });
+
+//     if (user.productsQrScanned.includes(product.productId)) {
+//       return res.status(400).json({ success: false, message: "You already scanned this product." });
+//     }
+
+//     qrCode.status = "scanned";
+//     qrCode.scannedBy = user._id;
+//     qrCode.scannedAt = new Date();
+
+//     // Add scan history to user
+//     const categoryName = await Category.findById(product.category).select("categoryName");
+//     user.recordScan(
+//       product.productId,
+//       product.productName,
+//       categoryName?.categoryName || "",
+//       product.coinReward
+//     );
+
+//     await Promise.all([product.save(), user.save()]);
+
+//     return res.status(200).json({
+//       success: true,
+//       message: `Congratulations! You've earned ${product.coinReward} coins for scanning ${product.productName}.`,
+//       data: {
+//         productName: product.productName,
+//         coinsEarned: product.coinReward,
+//         totalCoins: user.coinsEarned,
+//         scannedAt: qrCode.scannedAt,
+//       },
+//     });
+
+//   } catch (error) {
+//     console.error("Scan QR Error:", error);
+//     return res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };

@@ -29,20 +29,39 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    // QR Management
+    qrCodes: [
+      {
+        qrCodeImage: { type: String, required: true },
+        qrCode: { type: String, required: true, unique: true },
+        qrStatus: {
+          type: String,
+          enum: ["active", "scanned", "disabled"],
+          default: "active",
+        },
+        scannedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          default: null,
+        },
+        scannedAt: {
+          type: Date,
+          default: null,
+        },
+      },
+    ],
+    /* remove it in future */
     qrCodeImage: {
       type: String,
       required: true,
     },
-    qrCode:{
-      type:String,
+    qrCode: {
+      type: String,
     },
     qrStatus: {
       type: String,
       enum: ["active", "scanned", "disabled"],
       default: "active",
     },
-    // Tracking
     scannedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -52,6 +71,7 @@ const productSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    /* remove it in future */
   },
   { timestamps: true }
 );
