@@ -49,29 +49,7 @@ const productSchema = new mongoose.Schema(
         },
       },
     ],
-    /* remove it in future */
-    qrCodeImage: {
-      type: String,
-      required: true,
-    },
-    qrCode: {
-      type: String,
-    },
-    qrStatus: {
-      type: String,
-      enum: ["active", "scanned", "disabled"],
-      default: "active",
-    },
-    scannedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
-    },
-    scannedAt: {
-      type: Date,
-      default: null,
-    },
-    /* remove it in future */
+
   },
   { timestamps: true }
 );

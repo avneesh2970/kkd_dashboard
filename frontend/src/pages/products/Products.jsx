@@ -24,7 +24,7 @@ export default function Products() {
     productName: "",
     categoryId: "",
     coinReward: "",
-    qrCount:"",
+    qrCount: "",
     productImage: null,
   });
   const [imagePreview, setImagePreview] = useState(null);
@@ -93,7 +93,7 @@ export default function Products() {
       productName: "",
       categoryId: "",
       coinReward: "",
-      qrCount:"",
+      qrCount: "",
       productImage: null,
     });
     setImagePreview(null);
@@ -103,7 +103,7 @@ export default function Products() {
   const openPopup = (product = null) => {
     if (product) {
       setEditingProduct(product);
-      console.log("....", product)
+      console.log("....", product);
       setFormData({
         productName: product.productName,
         categoryId: product.category._id,
@@ -238,7 +238,7 @@ export default function Products() {
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${current.bg} ${current.text}`}
       >
         <span className={`w-2 h-2 mr-1.5 rounded-full ${current.dot}`}></span>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {status?.charAt(0).toUpperCase() + status?.slice(1)}
       </span>
     );
   };
@@ -459,21 +459,21 @@ export default function Products() {
                   ))}
                 </select>
               </div>
-                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    QR Count
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={50}
-                    name="qrCount"
-                    value={formData.qrCount}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  QR Count
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  // max={50}
+                  name="qrCount"
+                  value={formData.qrCount}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Product Image
@@ -537,9 +537,7 @@ export default function Products() {
               <p className="text-sm text-gray-500">
                 {selectedProduct.category?.categoryName}
               </p>
-              <p className="text-sm text-gray-500">
-                {selectedProduct?.qrCode}
-              </p>
+              <p className="text-sm text-gray-500">{selectedProduct?.qrCode}</p>
               <div className="flex justify-center">
                 <img
                   src={selectedProduct.qrCodeImage || "/placeholder.svg"}

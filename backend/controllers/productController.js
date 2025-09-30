@@ -236,7 +236,7 @@ export const addProduct = async (req, res) => {
     if (!isValidQrCount(qrCount)) {
       return res
         .status(400)
-        .json({ message: "qrCount must be a number between 1 and 50" });
+        .json({ message: "qrCount must be a valid number" });
     }
 
     const category = await Category.findById(categoryId);
@@ -252,19 +252,20 @@ export const addProduct = async (req, res) => {
 
     for (let i = 0; i < count; i++) {
       const now = Date.now();
+      const qrCode = generateProductId();
       const qrData = {
         productId,
         type: "PRODUCT_QR",
         index: i,
+        giftCode: qrCode,
         timestamp: now,
         hash: Buffer.from(`${productId}-${now}-${i}-KKD_SECRET`)
           .toString("base64")
           .slice(0, 16),
       };
-
+      console.log("qrCode: ", qrCode);
       const qrCodeImage = await uploadQRToCloudinary(JSON.stringify(qrData));
-      const qrCode = generateProductId(); // unique code string
-
+      console.log("QrCodeImage: ", qrCodeImage);
       qrCodes.push({
         qrCodeImage,
         qrCode,
@@ -598,29 +599,34 @@ export const testQRScan = async (req, res) => {
 export const scanProductQR = async (req, res) => {
   try {
     const { qrData, code } = req.body;
-    if (!qrData && !code) {
-      console.log(qrData, code);
+    const userId = req.user.userId;
+
+    // ✅ Common user fetch
+    const user = await User.findOne({ userId });
+    if (user.kycStatus !== "approved") {
       return res.status(400).json({
         success: false,
-        message: "QR data or code is required.",
+        message: "KYC Must be approved",
       });
     }
+    console.log(user.email, "emailllll");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // =====================================
+    // Case 1: QR data object/string provided
+    // =====================================
     if (qrData) {
-      const userId = req.user.userId;
-
-      if (!qrData) {
-        return res.status(400).json({
-          success: false,
-          message: "QR data is required.",
-        });
-      }
-
-      // Parse QR data
       let parsedData;
+
       if (typeof qrData === "string") {
         try {
           parsedData = JSON.parse(qrData);
-        } catch (parseError) {
+        } catch (err) {
           return res.status(400).json({
             success: false,
             message: "Invalid QR code format.",
@@ -635,7 +641,6 @@ export const scanProductQR = async (req, res) => {
         });
       }
 
-      // Validate QR structure
       if (!parsedData.productId || parsedData.type !== "PRODUCT_QR") {
         return res.status(400).json({
           success: false,
@@ -643,18 +648,10 @@ export const scanProductQR = async (req, res) => {
         });
       }
 
-      let product = await Product.findOne({
-        productId: parsedData.productId,
-      }).populate("scannedBy", "fullName");
-
-      let isOfferProduct = false;
-
-      if (!product) {
-        product = await Offer.findOne({
-          productId: parsedData.productId,
-        }).populate("scannedBy", "fullName");
-        isOfferProduct = true;
-      }
+      // ✅ Product or Offer find
+      let product =
+        (await Product.findOne({ productId: parsedData.productId })) ||
+        (await Offer.findOne({ productId: parsedData.productId }));
 
       if (!product) {
         return res.status(404).json({
@@ -663,144 +660,35 @@ export const scanProductQR = async (req, res) => {
         });
       }
 
-      if (product.qrStatus !== "active") {
-        if (product.qrStatus === "scanned") {
-          return res.status(200).json({
-            success: false,
-            scanned: true,
-            message: "This QR code has already been used.",
-            data: {
-              scannedByName: product.scannedBy?.fullName || "Unknown",
-              scannedAt: product.scannedAt,
-              productName: product.productName,
-              productImage: product.productImage,
-            },
-          });
-        }
-
-        return res.status(400).json({
-          success: false,
-          scanned: false,
-          message: "This QR code is currently inactive.",
-        });
-      }
-
-      const user = await User.findOne({ userId });
-      if (!user) {
-        return res
-          .status(404)
-          .json({ success: false, message: "User not found." });
-      }
-
-      // Check if user already scanned this product
-      if (user.productsQrScanned.includes(product.productId)) {
-        return res.status(400).json({
-          success: false,
-          message: "You have already scanned this product.",
-        });
-      }
-      // Update product status
-      product.qrStatus = "scanned";
-      product.scannedBy = user._id;
-      product.scannedAt = new Date();
-
-      // Get category name for scan history
-      const categoryName = await Category.findById(product.category).select(
-        "categoryName"
+      // ✅ Match QR inside product.qrCodes
+      const scannedQrCode = parsedData.giftCode;
+      const matchedQr = product.qrCodes.find(
+        (qr) => qr.qrCode === scannedQrCode
       );
 
-      // Use the recordScan method to properly update user data
-      user.recordScan(
-        product.productId,
-        product.productName,
-        categoryName?.categoryName || "",
-        product.coinReward
-      );
-
-      await Promise.all([product.save(), user.save()]);
-
-      res.status(200).json({
-        success: true,
-        message: `Congratulations! You've earned ${product.coinReward} coins for scanning ${product.productName}.`,
-        data: {
-          productName: product.productName,
-          coinsEarned: product.coinReward,
-          totalCoins: user.coinsEarned,
-          scannedAt: product.scannedAt,
-        },
-      });
-    } else if (code) {
-      const userId = req.user.userId;
-
-      let product = await Product.findOne({ qrCode: code }).populate(
-        "scannedBy",
-        "fullName"
-      );
-
-      let isOfferProduct = false;
-
-      if (!product) {
-        product = await Offer.findOne({ qrCode: code }).populate(
-          "scannedBy",
-          "fullName"
-        );
-        isOfferProduct = true;
-      }
-
-      if (!product) {
+      if (!matchedQr) {
         return res.status(404).json({
           success: false,
-          message: "Product not found. Invalid QR code.",
+          message: "QR code not found in this product.",
         });
       }
 
-      if (product.qrStatus !== "active") {
-        if (product.qrStatus === "scanned") {
-          return res.status(200).json({
-            success: false,
-            scanned: true,
-            message: "This QR code has already been used.",
-            data: {
-              scannedByName: product.scannedBy?.fullName || "Unknown",
-              scannedAt: product.scannedAt,
-              productName: product.productName,
-              productImage: product.productImage,
-            },
-          });
-        }
-
+      if (matchedQr.qrStatus !== "active") {
         return res.status(400).json({
           success: false,
-          scanned: false,
           message: "This QR code is currently inactive.",
         });
       }
 
-      const user = await User.findOne({ userId });
-      if (!user) {
-        return res
-          .status(404)
-          .json({ success: false, message: "User not found." });
-      }
+      // ✅ Update
+      matchedQr.scannedBy = user._id;
+      matchedQr.scannedAt = Date.now();
+      matchedQr.qrStatus = "scanned";
 
-      // Check if user already scanned this product
-      if (user.productsQrScanned.includes(product.productId)) {
-        return res.status(400).json({
-          success: false,
-          message: "You have already scanned this product.",
-        });
-      }
-      // Update product status
-      product.qrStatus = "scanned";
-      product.scannedBy = user._id;
-      product.scannedAt = new Date();
-
-      // Get category name for scan history
       const categoryName = await Category.findById(product.category).select(
         "categoryName"
       );
 
-      // Use the recordScan method to properly update user data
       user.recordScan(
         product.productId,
         product.productName,
@@ -809,21 +697,98 @@ export const scanProductQR = async (req, res) => {
       );
 
       await Promise.all([product.save(), user.save()]);
-
-      res.status(200).json({
+      user.productsQrScanned.push();
+      return res.status(200).json({
         success: true,
         message: `Congratulations! You've earned ${product.coinReward} coins for scanning ${product.productName}.`,
         data: {
           productName: product.productName,
           coinsEarned: product.coinReward,
           totalCoins: user.coinsEarned,
-          scannedAt: product.scannedAt,
+          scannedAt: matchedQr.scannedAt,
         },
       });
     }
+
+    // =====================================
+    // Case 2: Only code provided
+    // =====================================
+    if (code) {
+      console.log("code: ", code);
+      // ✅ Product or Offer find by qrCodes.qrCode
+      let product =
+        (await Product.findOne({ "qrCodes.qrCode": code })) ||
+        (await Offer.findOne({ "qrCodes.qrCode": code }));
+
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found. Invalid QR code.",
+        });
+      }
+
+      // ✅ Match QR object
+      const matchedQr = product.qrCodes.find((qr) => qr.qrCode === code);
+
+      if (!matchedQr) {
+        return res.status(404).json({
+          success: false,
+          message: "QR code not found in this product.",
+        });
+      }
+
+      if (matchedQr.qrStatus !== "active") {
+        return res.status(400).json({
+          success: false,
+          message: "This QR code is currently inactive.",
+        });
+      }
+
+      // ✅ Update QR + User
+      matchedQr.scannedBy = user._id;
+      matchedQr.scannedAt = Date.now();
+      matchedQr.qrStatus = "scanned";
+      console.log("hello");
+      const categoryName = await Category.findById(product.category).select(
+        "categoryName"
+      );
+      console.log(product);
+      console.log(
+        "coinReward: ",
+        product.coinReward,
+        typeof product.coinReward
+      );
+      user.recordScan(
+        product.productId,
+        product.productName,
+        categoryName?.categoryName || "",
+        product.coinReward
+      );
+
+      await Promise.all([product.save(), user.save()]);
+
+      return res.status(200).json({
+        success: true,
+        message: `Congratulations! You've earned ${product.coinReward} coins for scanning ${product.productName}.`,
+        data: {
+          productName: product.productName,
+          coinsEarned: product.coinReward,
+          totalCoins: user.coinsEarned,
+          scannedAt: matchedQr.scannedAt,
+        },
+      });
+    }
+
+    // If neither qrData nor code
+    return res.status(400).json({
+      success: false,
+      message: "QR data or code is required.",
+    });
   } catch (error) {
     console.error("Scan QR Error:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 

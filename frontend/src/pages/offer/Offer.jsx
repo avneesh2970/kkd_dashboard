@@ -1,329 +1,270 @@
-// import { FaPlus } from "react-icons/fa6";
-// import Header from "../../components/header/Header";
-// import { IoIosArrowRoundBack } from "react-icons/io";
-// import { Link } from "react-router-dom";
+"use client";
 
-// export default function Offer() {
-//   const offers = [
-//     {
-//       name: "Hyundai",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//     {
-//       name: "Exterior",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//     {
-//       name: "Wood finish",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//     {
-//       name: "waterproofing",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//     {
-//       name: "Hyundai",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//     {
-//       name: "Exterior",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//     {
-//       name: "Wood finish",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//     {
-//       name: "waterproofing",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//     {
-//       name: "Hyundai",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//     {
-//       name: "Exterior",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//     {
-//       name: "Wood finish",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//     {
-//       name: "waterproofing",
-//       img: "https://placehold.co/600x400@2x.png",
-//     },
-//   ];
-
-//   return (
-//     <div className="min-h-screen bg-gradient-to-b from-[#C3E8FF] to-white px-10 pt-7 pb-12 space-y-8">
-//       <Header />
-//       <div className="flex items-center justify-between mb-6">
-//         <h2 className="font-semibold text-black text-lg flex items-center">
-//           <Link to="/">
-//             <IoIosArrowRoundBack size={35} className="mr-1 text-black" />
-//           </Link>
-//           Offers
-//         </h2>
-//         <button className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
-//           <FaPlus className="text-black text-sm" />
-//         </button>
-//       </div>
-//       {/* Category Grid */}
-//       <div className="max-w-7xl mx-auto">
-//         <div className="flex flex-wrap justify-between gap-3">
-//           {offers.map((offer, index) => (
-//             <div key={index} className="w-[180px]">
-//               <img
-//                 src={offer.img}
-//                 alt={offer.name}
-//                 className="w-full aspect-square object-cover rounded"
-//               />
-//               <p className="mt-1 text-sm font-medium text-black text-center">
-//                 {offer.name}
-//               </p>
-//             </div>
-//           ))}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-"use client"
-
-import { useState, useEffect, useRef, useCallback } from "react"
-import Header from "../../components/header/Header"
-import { Link } from "react-router-dom"
-import { IoIosArrowRoundBack, IoIosClose } from "react-icons/io"
-import { FaPlus, FaTrash, FaEdit, FaDownload } from "react-icons/fa"
-import { Loader2, Power, PowerOff, AlertTriangle } from "lucide-react"
-import toast from "react-hot-toast"
-import { api } from "../../helpers/api/api"
+import { useState, useEffect, useRef, useCallback } from "react";
+import Header from "../../components/header/Header";
+import { Link } from "react-router-dom";
+import { IoIosArrowRoundBack, IoIosClose } from "react-icons/io";
+import { FaPlus, FaTrash, FaEdit, FaDownload } from "react-icons/fa";
+import { Loader2, Power, PowerOff, AlertTriangle } from "lucide-react";
+import toast from "react-hot-toast";
+import { api } from "../../helpers/api/api";
 
 export default function Offers() {
   // Main state
-  const [products, setProducts] = useState([])
-  const [categories, setCategories] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Popup and form state
-  const [isPopupOpen, setIsPopupOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [editingProduct, setEditingProduct] = useState(null)
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({
     productName: "",
     categoryId: "",
-    description:"",
+    description: "",
     coinReward: "",
+    qrCount: "",
     productImage: null,
-  })
-  const [imagePreview, setImagePreview] = useState(null)
+  });
+  const [imagePreview, setImagePreview] = useState(null);
 
   // Details modal state
-  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const popupRef = useRef(null)
+  const popupRef = useRef(null);
 
   // Fetch initial data (products and categories)
   const fetchData = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const [productsRes, categoriesRes] = await Promise.all([
         api.get("/api/admin/offer-products"),
         api.get("/api/admin/categories"),
-      ])
-      setProducts(productsRes.data.data)
-      setCategories(categoriesRes.data.data)
-      setError(null)
+      ]);
+      setProducts(productsRes.data.data);
+      setCategories(categoriesRes.data.data);
+      setError(null);
     } catch (err) {
-      console.error("Failed to fetch data:", err)
-      setError("Could not load products or categories. Please try again.")
-      toast.error("Failed to load data.")
+      console.error("Failed to fetch data:", err);
+      setError("Could not load products or categories. Please try again.");
+      toast.error("Failed to load data.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    fetchData();
+  }, [fetchData]);
 
   // Handle closing popup on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isPopupOpen && popupRef.current && !popupRef.current.contains(event.target)) {
-        closePopup()
+      if (
+        isPopupOpen &&
+        popupRef.current &&
+        !popupRef.current.contains(event.target)
+      ) {
+        closePopup();
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPopupOpen])
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPopupOpen]);
 
   // Form handling
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files[0];
     if (file) {
-      setFormData((prev) => ({ ...prev, productImage: file }))
-      setImagePreview(URL.createObjectURL(file))
+      setFormData((prev) => ({ ...prev, productImage: file }));
+      setImagePreview(URL.createObjectURL(file));
     }
-  }
+  };
 
   const resetForm = () => {
-    setFormData({ productName: "", categoryId: "",description:"", coinReward: "", productImage: null })
-    setImagePreview(null)
-    setEditingProduct(null)
-  }
+    setFormData({
+      productName: "",
+      categoryId: "",
+      coinReward: "",
+      qrCount: "",
+      productImage: null,
+    });
+    setImagePreview(null);
+    setEditingProduct(null);
+  };
 
   const openPopup = (product = null) => {
     if (product) {
-      setEditingProduct(product)
+      setEditingProduct(product);
       setFormData({
         productName: product.productName,
         categoryId: product.category._id,
         description: product.description || "",
         coinReward: product.coinReward,
+        qrCount: product.qrCodes.length,
         productImage: null, // Not editing image by default
-      })
-      setImagePreview(product.productImage)
+      });
+      setImagePreview(product.productImage);
     } else {
-      resetForm()
+      resetForm();
     }
-    setIsPopupOpen(true)
-  }
+    setIsPopupOpen(true);
+  };
 
   const closePopup = () => {
-    setIsPopupOpen(false)
-    resetForm()
-  }
+    setIsPopupOpen(false);
+    resetForm();
+  };
 
   // API Calls
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!formData.categoryId) {
-      toast.error("Please select a category.")
-      return
+      toast.error("Please select a category.");
+      return;
     }
     if (!editingProduct && !formData.productImage) {
-      toast.error("Please upload a product image.")
-      return
+      toast.error("Please upload a product image.");
+      return;
     }
 
-    setIsSubmitting(true)
-    const payload = new FormData()
-    payload.append("productName", formData.productName)
-    payload.append("description", formData.description || "")
-    payload.append("categoryId", formData.categoryId)
-    payload.append("coinReward", formData.coinReward)
+    setIsSubmitting(true);
+    const payload = new FormData();
+    payload.append("productName", formData.productName);
+    payload.append("description", formData.description || "");
+    payload.append("categoryId", formData.categoryId);
+    payload.append("coinReward", formData.coinReward);
+    payload.append("qrCount", formData.qrCount);
     if (formData.productImage) {
-      payload.append("productImage", formData.productImage)
+      payload.append("productImage", formData.productImage);
     }
 
     try {
       if (editingProduct) {
-        await api.put(`/api/admin/update-offer-product/${editingProduct._id}`, payload)
-        toast.success("Product updated successfully!")
+        await api.put(
+          `/api/admin/update-offer-product/${editingProduct._id}`,
+          payload
+        );
+        toast.success("Product updated successfully!");
       } else {
-        await api.post("/api/admin/add-offer-product", payload)
-        toast.success("Product added successfully!")
+        await api.post("/api/admin/add-offer-product", payload);
+        toast.success("Product added successfully!");
       }
-      closePopup()
-      fetchData()
+      closePopup();
+      fetchData();
     } catch (err) {
-      console.error("Form submission error:", err)
-      toast.error(err.response?.data?.message || "An error occurred.")
+      console.error("Form submission error:", err);
+      toast.error(err.response?.data?.message || "An error occurred.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this product? This action cannot be undone.")) {
-      const toastId = toast.loading("Deleting product...")
+    if (
+      window.confirm(
+        "Are you sure you want to delete this product? This action cannot be undone."
+      )
+    ) {
+      const toastId = toast.loading("Deleting product...");
       try {
-        await api.delete(`/api/admin/delete-offer-product/${id}`)
-        toast.success("Product deleted.", { id: toastId })
-        fetchData()
-      // eslint-disable-next-line no-unused-vars
+        await api.delete(`/api/admin/delete-offer-product/${id}`);
+        toast.success("Product deleted.", { id: toastId });
+        fetchData();
+        // eslint-disable-next-line no-unused-vars
       } catch (err) {
-        toast.error("Failed to delete product.", { id: toastId })
+        toast.error("Failed to delete product.", { id: toastId });
       }
     }
-  }
+  };
 
   const handleToggleStatus = async (id) => {
-    const toastId = toast.loading("Updating status...")
+    const toastId = toast.loading("Updating status...");
     try {
-      await api.patch(`/api/admin/toggle-offer-product-status/${id}`)
-      toast.success("Status updated.", { id: toastId })
-      fetchData()
+      await api.patch(`/api/admin/toggle-offer-product-status/${id}`);
+      toast.success("Status updated.", { id: toastId });
+      fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update status.", { id: toastId })
+      toast.error(err.response?.data?.message || "Failed to update status.", {
+        id: toastId,
+      });
     }
-  }
+  };
 
   const handleDownloadQR = (qrUrl, productName) => {
     fetch(qrUrl)
       .then((res) => res.blob())
       .then((blob) => {
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.style.display = "none"
-        a.href = url
-        a.download = `${productName.replace(/\s+/g, "_")}_QR.png`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = `${productName.replace(/\s+/g, "_")}_QR.png`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
       })
-      .catch(() => toast.error("Failed to download QR code."))
-  }
+      .catch(() => toast.error("Failed to download QR code."));
+  };
 
   // UI Components
   const StatusBadge = ({ status }) => {
     const statusStyles = {
-      active: { bg: "bg-green-100", text: "text-green-800", dot: "bg-green-500" },
+      active: {
+        bg: "bg-green-100",
+        text: "text-green-800",
+        dot: "bg-green-500",
+      },
       scanned: { bg: "bg-blue-100", text: "text-blue-800", dot: "bg-blue-500" },
       disabled: { bg: "bg-red-100", text: "text-red-800", dot: "bg-red-500" },
-    }
-    const current = statusStyles[status] || { bg: "bg-gray-100", text: "text-gray-800", dot: "bg-gray-500" }
+    };
+    const current = statusStyles[status] || {
+      bg: "bg-gray-100",
+      text: "text-gray-800",
+      dot: "bg-gray-500",
+    };
     return (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${current.bg} ${current.text}`}
       >
         <span className={`w-2 h-2 mr-1.5 rounded-full ${current.dot}`}></span>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {status?.charAt(0).toUpperCase() + status?.slice(1)}
       </span>
-    )
-  }
+    );
+  };
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
       </div>
-    )
+    );
   }
 
   if (error) {
     return (
       <div className="text-center py-20">
         <AlertTriangle className="mx-auto h-12 w-12 text-red-400" />
-        <h3 className="mt-2 text-lg font-medium text-red-600">Loading Failed</h3>
+        <h3 className="mt-2 text-lg font-medium text-red-600">
+          Loading Failed
+        </h3>
         <p className="mt-1 text-sm text-gray-500">{error}</p>
-        <button onClick={fetchData} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md">
+        <button
+          onClick={fetchData}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md"
+        >
           Retry
         </button>
       </div>
-    )
+    );
   }
 
   return (
@@ -380,8 +321,12 @@ export default function Offers() {
                         />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{product.productName}</div>
-                        <div className="text-xs text-gray-500">{product.productId}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {product.productName}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {product.productId}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -412,7 +357,9 @@ export default function Offers() {
                       </button>
                       <button
                         onClick={() => handleToggleStatus(product._id)}
-                        title={product.qrStatus === "active" ? "Disable" : "Enable"}
+                        title={
+                          product.qrStatus === "active" ? "Disable" : "Enable"
+                        }
                       >
                         {product.qrStatus === "active" ? (
                           <Power className="w-4 h-4 text-green-600" />
@@ -439,17 +386,27 @@ export default function Offers() {
       {/* Add/Edit Product Popup */}
       {isPopupOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
-          <div ref={popupRef} className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+          <div
+            ref={popupRef}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
+          >
             <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-xl font-semibold">{editingProduct ? "Edit Product" : "Add New Product"}</h3>
+              <h3 className="text-xl font-semibold">
+                {editingProduct ? "Edit Product" : "Add New Product"}
+              </h3>
               <button onClick={closePopup}>
                 <IoIosClose size={28} />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
+            <form
+              onSubmit={handleSubmit}
+              className="p-6 space-y-4 overflow-y-auto"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Product Name</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Product Name
+                  </label>
                   <input
                     type="text"
                     name="productName"
@@ -460,7 +417,9 @@ export default function Offers() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Coin Reward</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Coin Reward
+                  </label>
                   <input
                     type="number"
                     name="coinReward"
@@ -473,7 +432,9 @@ export default function Offers() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Category</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Category
+                </label>
                 <select
                   name="categoryId"
                   value={formData.categoryId}
@@ -491,18 +452,37 @@ export default function Offers() {
                   ))}
                 </select>
               </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    type="text"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
-                  />
-                </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Product Image</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  QR Count
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  // max={50}
+                  name="qrCount"
+                  value={formData.qrCount}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Description
+                </label>
+                <textarea
+                  type="text"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Product Image
+                </label>
                 <div className="mt-1 flex items-center gap-4">
                   <div className="w-24 h-24 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden">
                     {imagePreview ? (
@@ -524,7 +504,11 @@ export default function Offers() {
                 </div>
               </div>
               <div className="pt-4 flex justify-end gap-3 border-t mt-4">
-                <button type="button" onClick={closePopup} className="px-4 py-2 border rounded-lg">
+                <button
+                  type="button"
+                  onClick={closePopup}
+                  className="px-4 py-2 border rounded-lg"
+                >
                   Cancel
                 </button>
                 <button
@@ -552,8 +536,12 @@ export default function Offers() {
               </button>
             </div>
             <div className="p-6 space-y-4 text-center overflow-y-auto">
-              <h4 className="text-lg font-bold">{selectedProduct.productName}</h4>
-              <p className="text-sm text-gray-500">{selectedProduct.category?.categoryName}</p>
+              <h4 className="text-lg font-bold">
+                {selectedProduct.productName}
+              </h4>
+              <p className="text-sm text-gray-500">
+                {selectedProduct.category?.categoryName}
+              </p>
               <div className="flex justify-center">
                 <img
                   src={selectedProduct.qrCodeImage || "/placeholder.svg"}
@@ -561,15 +549,23 @@ export default function Offers() {
                   className="w-64 h-64 border-4 border-gray-200 p-2 rounded-lg"
                 />
               </div>
-              <p className="text-sm text-gray-600">Scan this QR code to earn {selectedProduct.coinReward} coins.</p>
+              <p className="text-sm text-gray-600">
+                Scan this QR code to earn {selectedProduct.coinReward} coins.
+              </p>
               <StatusBadge status={selectedProduct.qrStatus} />
               {selectedProduct.scannedBy && (
                 <p className="text-xs text-gray-500">
-                  Scanned on: {new Date(selectedProduct.scannedAt).toLocaleString()}
+                  Scanned on:{" "}
+                  {new Date(selectedProduct.scannedAt).toLocaleString()}
                 </p>
               )}
               <button
-                onClick={() => handleDownloadQR(selectedProduct.qrCodeImage, selectedProduct.productName)}
+                onClick={() =>
+                  handleDownloadQR(
+                    selectedProduct.qrCodeImage,
+                    selectedProduct.productName
+                  )
+                }
                 className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2"
               >
                 <FaDownload /> Download QR
@@ -579,5 +575,5 @@ export default function Offers() {
         </div>
       )}
     </div>
-  )
+  );
 }
