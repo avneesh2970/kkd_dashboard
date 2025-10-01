@@ -319,7 +319,7 @@ export const getAllOfferProducts = async (req, res) => {
 export const updateOfferProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { productName, categoryId, coinReward } = req.body;
+    const { productName, categoryId, coinReward, qrCount } = req.body;
 
     const product = await Offer.findById(id);
     if (!product) {
@@ -332,6 +332,38 @@ export const updateOfferProduct = async (req, res) => {
     if (categoryId) product.category = categoryId;
     if (coinReward) product.coinReward = coinReward;
 
+    if (!isValidQrCount(qrCount)) {
+      return res
+        .status(400)
+        .json({ message: "qrCount must be a valid number" });
+    }
+
+    const productId = product.productId;
+    const newQrCodes = [];
+    const count = qrCount && qrCount > 0 && parseInt(qrCount);
+
+    for (let i = 0; i < count; i++) {
+      const now = Date.now();
+      const qrCode = generateProductId();
+      const qrData = {
+        productId,
+        type: "PRODUCT_QR",
+        index: product.qrCodes.length + i, // naye QR ka index purane ke baad se,
+        giftCode: qrCode,
+        timestamp: now,
+        hash: Buffer.from(`${productId}-${now}-${i}-KKD_SECRET`)
+          .toString("base64")
+          .slice(0, 16),
+      };
+      const qrCodeImage = await uploadQRToCloudinary(JSON.stringify(qrData));
+      newQrCodes.push({
+        qrCodeImage,
+        qrCode,
+        qrStatus: "active",
+      });
+    }
+    product.qrCodes.push(...newQrCodes);
+
     if (req.file) {
       // Optional: Delete old image from Cloudinary
       product.productImage = req.file.path;
@@ -341,7 +373,7 @@ export const updateOfferProduct = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Product updated successfully.",
+      message: "Offer Product updated successfully.",
       data: product,
     });
   } catch (error) {

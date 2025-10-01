@@ -307,9 +307,6 @@ export default function Products() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Coins
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  QR Status
-                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -343,9 +340,7 @@ export default function Products() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-yellow-600">
                     {product.coinReward}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={product.qrStatus} />
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-3">
                       <button

@@ -384,7 +384,8 @@ export const updateProduct = async (req, res) => {
         .json({ message: "qrCount must be a valid number" });
     }
 
-    const productId = `PROD_${generateProductId()}`;
+    // const productId = `PROD_${generateProductId()}`;
+    const productId = product.productId;
     const newQrCodes = [];
     const count = qrCount && qrCount > 0 && parseInt(qrCount);
 
