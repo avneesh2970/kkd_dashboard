@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Header from "../../components/header/Header";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { IoIosArrowRoundBack, IoIosClose } from "react-icons/io";
-import { FaPlus, FaTrash, FaEdit, FaDownload } from "react-icons/fa";
-import { Loader2, Power, PowerOff, AlertTriangle } from "lucide-react";
+import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
+import { Loader2, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../helpers/api/api";
 
 export default function Products() {
+  const navigate = useNavigate();
   // Main state
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -188,30 +189,30 @@ export default function Products() {
   };
 
   // UI Components
-  const StatusBadge = ({ status }) => {
-    const statusStyles = {
-      active: {
-        bg: "bg-green-100",
-        text: "text-green-800",
-        dot: "bg-green-500",
-      },
-      scanned: { bg: "bg-blue-100", text: "text-blue-800", dot: "bg-blue-500" },
-      disabled: { bg: "bg-red-100", text: "text-red-800", dot: "bg-red-500" },
-    };
-    const current = statusStyles[status] || {
-      bg: "bg-gray-100",
-      text: "text-gray-800",
-      dot: "bg-gray-500",
-    };
-    return (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${current.bg} ${current.text}`}
-      >
-        <span className={`w-2 h-2 mr-1.5 rounded-full ${current.dot}`}></span>
-        {status?.charAt(0).toUpperCase() + status?.slice(1)}
-      </span>
-    );
-  };
+  // const StatusBadge = ({ status }) => {
+  //   const statusStyles = {
+  //     active: {
+  //       bg: "bg-green-100",
+  //       text: "text-green-800",
+  //       dot: "bg-green-500",
+  //     },
+  //     scanned: { bg: "bg-blue-100", text: "text-blue-800", dot: "bg-blue-500" },
+  //     disabled: { bg: "bg-red-100", text: "text-red-800", dot: "bg-red-500" },
+  //   };
+  //   const current = statusStyles[status] || {
+  //     bg: "bg-gray-100",
+  //     text: "text-gray-800",
+  //     dot: "bg-gray-500",
+  //   };
+  //   return (
+  //     <span
+  //       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${current.bg} ${current.text}`}
+  //     >
+  //       <span className={`w-2 h-2 mr-1.5 rounded-full ${current.dot}`}></span>
+  //       {status?.charAt(0).toUpperCase() + status?.slice(1)}
+  //     </span>
+  //   );
+  // };
 
   if (isLoading) {
     return (
@@ -295,12 +296,8 @@ export default function Products() {
                         />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {product.productName}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {product.productId}
-                        </div>
+                        <div className="text-sm font-medium text-gray-900">{product.productName}</div>
+                        <div className="text-xs text-gray-500">{product.productId}</div>
                       </div>
                     </div>
                   </td>
@@ -314,7 +311,7 @@ export default function Products() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-3">
                       <button
-                        onClick={() => setSelectedProduct(product)}
+                        onClick={() => navigate(`/products/${product._id}`)}
                         className="text-blue-600 hover:text-blue-900"
                         title="View Details & QR"
                       >
