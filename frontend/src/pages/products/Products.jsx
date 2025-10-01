@@ -31,7 +31,7 @@ export default function Products() {
 
   // Details modal state
   const [selectedProduct, setSelectedProduct] = useState(null);
-
+  console.log("selecetedProduct: ", JSON.stringify(selectedProduct));
   const popupRef = useRef(null);
 
   // Fetch initial data (products and categories)
@@ -103,7 +103,6 @@ export default function Products() {
   const openPopup = (product = null) => {
     if (product) {
       setEditingProduct(product);
-      console.log("....", product);
       setFormData({
         productName: product.productName,
         categoryId: product.category._id,
@@ -186,35 +185,6 @@ export default function Products() {
         toast.error("Failed to delete product.", { id: toastId });
       }
     }
-  };
-
-  const handleToggleStatus = async (id) => {
-    const toastId = toast.loading("Updating status...");
-    try {
-      await api.patch(`/api/admin/toggle-product-status/${id}`);
-      toast.success("Status updated.", { id: toastId });
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update status.", {
-        id: toastId,
-      });
-    }
-  };
-
-  const handleDownloadQR = (qrUrl, productName) => {
-    fetch(qrUrl)
-      .then((res) => res.blob())
-      .then((blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = `${productName.replace(/\s+/g, "_")}_QR.png`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-      })
-      .catch(() => toast.error("Failed to download QR code."));
   };
 
   // UI Components
@@ -357,18 +327,7 @@ export default function Products() {
                       >
                         <FaEdit />
                       </button>
-                      <button
-                        onClick={() => handleToggleStatus(product._id)}
-                        title={
-                          product.qrStatus === "active" ? "Disable" : "Enable"
-                        }
-                      >
-                        {product.qrStatus === "active" ? (
-                          <Power className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <PowerOff className="w-4 h-4 text-red-600" />
-                        )}
-                      </button>
+
                       <button
                         onClick={() => handleDelete(product._id)}
                         className="text-red-600 hover:text-red-900"
@@ -511,57 +470,6 @@ export default function Products() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Product Details Modal */}
-      {selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-xl font-semibold">Product Details</h3>
-              <button onClick={() => setSelectedProduct(null)}>
-                <IoIosClose size={28} />
-              </button>
-            </div>
-            <div className="p-6 space-y-4 text-center overflow-y-auto">
-              <h4 className="text-lg font-bold">
-                {selectedProduct.productName}
-              </h4>
-              <p className="text-sm text-gray-500">
-                {selectedProduct.category?.categoryName}
-              </p>
-              <p className="text-sm text-gray-500">{selectedProduct?.qrCode}</p>
-              <div className="flex justify-center">
-                <img
-                  src={selectedProduct.qrCodeImage || "/placeholder.svg"}
-                  alt="QR Code"
-                  className="w-64 h-64 border-4 border-gray-200 p-2 rounded-lg"
-                />
-              </div>
-              <p className="text-sm text-gray-600">
-                Scan this QR code to earn {selectedProduct.coinReward} coins.
-              </p>
-              <StatusBadge status={selectedProduct.qrStatus} />
-              {selectedProduct.scannedBy && (
-                <p className="text-xs text-gray-500">
-                  Scanned on:{" "}
-                  {new Date(selectedProduct.scannedAt).toLocaleString()}
-                </p>
-              )}
-              <button
-                onClick={() =>
-                  handleDownloadQR(
-                    selectedProduct.qrCodeImage,
-                    selectedProduct.productName
-                  )
-                }
-                className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2"
-              >
-                <FaDownload /> Download QR
-              </button>
-            </div>
           </div>
         </div>
       )}

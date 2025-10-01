@@ -394,19 +394,6 @@ export const deleteOfferProduct = async (req, res) => {
         .json({ success: false, message: "Product not found." });
     }
 
-    // Delete images from Cloudinary
-    const productImagePublicId = `kkd/products/${
-      product.productImage.split("/").pop().split(".")[0]
-    }`;
-    const qrImagePublicId = `kkd/offerqrcodes/${
-      product.qrCodeImage.split("/").pop().split(".")[0]
-    }`;
-
-    await Promise.all([
-      cloudinary.uploader.destroy(productImagePublicId),
-      cloudinary.uploader.destroy(qrImagePublicId),
-    ]);
-
     res.status(200).json({
       success: true,
       message: "Product and its QR code deleted successfully.",

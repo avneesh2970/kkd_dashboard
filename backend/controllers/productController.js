@@ -433,7 +433,9 @@ export const updateProduct = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("id: ", id);
     const product = await Product.findByIdAndDelete(id);
+    console.log("product: ", product);
 
     if (!product) {
       return res
@@ -441,22 +443,9 @@ export const deleteProduct = async (req, res) => {
         .json({ success: false, message: "Product not found." });
     }
 
-    // Delete images from Cloudinary
-    const productImagePublicId = `kkd/products/${
-      product.productImage.split("/").pop().split(".")[0]
-    }`;
-    const qrImagePublicId = `kkd/qrcodes/${
-      product.qrCodeImage.split("/").pop().split(".")[0]
-    }`;
-
-    await Promise.all([
-      cloudinary.uploader.destroy(productImagePublicId),
-      cloudinary.uploader.destroy(qrImagePublicId),
-    ]);
-
     res.status(200).json({
       success: true,
-      message: "Product and its QR code deleted successfully.",
+      message: "Product deleted successfully.",
     });
   } catch (error) {
     console.error("Delete Product Error:", error);
