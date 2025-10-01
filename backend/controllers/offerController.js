@@ -224,7 +224,7 @@ export const addOfferProduct = async (req, res) => {
   try {
     const { productName, categoryId, description, coinReward, qrCount } =
       req.body;
-console.log(qrCount)
+    console.log(coinReward, "dfsfsfdsfd");
     if (!productName || !categoryId || !coinReward || !req.file) {
       return res.status(400).json({
         success: false,

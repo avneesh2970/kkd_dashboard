@@ -221,7 +221,6 @@ export const getFeaturedProducts = async (req, res) => {
 };
 
 export const addProduct = async (req, res) => {
-  console.log("add product api hit successfull");
   try {
     const { productName, categoryId, coinReward, description, qrCount } =
       req.body;
@@ -263,9 +262,8 @@ export const addProduct = async (req, res) => {
           .toString("base64")
           .slice(0, 16),
       };
-      console.log("qrCode: ", qrCode);
       const qrCodeImage = await uploadQRToCloudinary(JSON.stringify(qrData));
-      console.log("QrCodeImage: ", qrCodeImage);
+
       qrCodes.push({
         qrCodeImage,
         qrCode,
@@ -367,7 +365,7 @@ export const getAllProducts = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { productName, categoryId, coinReward } = req.body;
+    const { productName, categoryId, coinReward, qrCount } = req.body;
 
     const product = await Product.findById(id);
     if (!product) {
@@ -379,6 +377,38 @@ export const updateProduct = async (req, res) => {
     if (productName) product.productName = productName;
     if (categoryId) product.category = categoryId;
     if (coinReward) product.coinReward = coinReward;
+    //////////////////////////////////////////////////////////////
+    if (!isValidQrCount(qrCount)) {
+      return res
+        .status(400)
+        .json({ message: "qrCount must be a valid number" });
+    }
+
+    const productId = `PROD_${generateProductId()}`;
+    const newQrCodes = [];
+    const count = qrCount && qrCount > 0 && parseInt(qrCount);
+
+    for (let i = 0; i < count; i++) {
+      const now = Date.now();
+      const qrCode = generateProductId();
+      const qrData = {
+        productId,
+        type: "PRODUCT_QR",
+        index: product.qrCodes.length + i, // naye QR ka index purane ke baad se,
+        giftCode: qrCode,
+        timestamp: now,
+        hash: Buffer.from(`${productId}-${now}-${i}-KKD_SECRET`)
+          .toString("base64")
+          .slice(0, 16),
+      };
+      const qrCodeImage = await uploadQRToCloudinary(JSON.stringify(qrData));
+      newQrCodes.push({
+        qrCodeImage,
+        qrCode,
+        qrStatus: "active",
+      });
+    }
+    product.qrCodes.push(...newQrCodes);
 
     if (req.file) {
       // Optional: Delete old image from Cloudinary
@@ -600,7 +630,6 @@ export const scanProductQR = async (req, res) => {
   try {
     const { qrData, code } = req.body;
     const userId = req.user.userId;
-
     // ✅ Common user fetch
     const user = await User.findOne({ userId });
     if (user.kycStatus !== "approved") {
@@ -609,7 +638,6 @@ export const scanProductQR = async (req, res) => {
         message: "KYC Must be approved",
       });
     }
-    console.log(user.email, "emailllll");
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -665,7 +693,6 @@ export const scanProductQR = async (req, res) => {
       const matchedQr = product.qrCodes.find(
         (qr) => qr.qrCode === scannedQrCode
       );
-
       if (!matchedQr) {
         return res.status(404).json({
           success: false,
@@ -714,7 +741,6 @@ export const scanProductQR = async (req, res) => {
     // Case 2: Only code provided
     // =====================================
     if (code) {
-      console.log("code: ", code);
       // ✅ Product or Offer find by qrCodes.qrCode
       let product =
         (await Product.findOne({ "qrCodes.qrCode": code })) ||
@@ -748,16 +774,10 @@ export const scanProductQR = async (req, res) => {
       matchedQr.scannedBy = user._id;
       matchedQr.scannedAt = Date.now();
       matchedQr.qrStatus = "scanned";
-      console.log("hello");
       const categoryName = await Category.findById(product.category).select(
         "categoryName"
       );
-      console.log(product);
-      console.log(
-        "coinReward: ",
-        product.coinReward,
-        typeof product.coinReward
-      );
+
       user.recordScan(
         product.productId,
         product.productName,
