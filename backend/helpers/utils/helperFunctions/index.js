@@ -1,3 +1,4 @@
+
 export const isValidNonNegativeNumber = (value) => {
   const number = Number(value);
   return Number.isFinite(number) && number >= 0;
@@ -9,4 +10,8 @@ export const isValidQrCount = (qrCount) => {
   if (count <= 0) return false; // must be positive
   // if (count > 50) return false; // upper limit check
   return true;
+};
+
+export const generateOtp = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
 };

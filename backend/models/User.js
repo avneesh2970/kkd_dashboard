@@ -85,6 +85,12 @@ const userSchema = new mongoose.Schema(
     // deletion flow fields
     isDeletionRequested: { type: Boolean, default: false },
     deletionDate: { type: Date, default: null },
+
+    //forgot password
+    otp: String,
+    otpExpiry: Date,
+    otpRequestCount: { type: Number, default: 0 },
+    otpRequestWindowStart: Date,
   },
   { timestamps: true }
 );
