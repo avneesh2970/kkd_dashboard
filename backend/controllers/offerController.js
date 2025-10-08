@@ -5,6 +5,7 @@ import cloudinary from "../helpers/cloudinary/cloudinary.js";
 import { customAlphabet } from "nanoid";
 import qrcode from "qrcode";
 import Offer from "../models/OfferProduct.js";
+import { isValidQrCount } from "../helpers/utils/helperFunctions/index.js";
 
 const generateProductId = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -221,13 +222,20 @@ export const getFeaturedOfferProducts = async (req, res) => {
 
 export const addOfferProduct = async (req, res) => {
   try {
-    const { productName, categoryId, description, coinReward } = req.body;
-    console.log(description)
+    const { productName, categoryId, description, coinReward, qrCount } =
+      req.body;
+    console.log(coinReward, "dfsfsfdsfd");
     if (!productName || !categoryId || !coinReward || !req.file) {
       return res.status(400).json({
         success: false,
         message: "Product name, category, coin reward, and image are required.",
       });
+    }
+
+    if (!isValidQrCount(qrCount)) {
+      return res
+        .status(400)
+        .json({ message: "qrCount must be a valid number" });
     }
 
     const category = await Category.findById(categoryId);
@@ -238,25 +246,42 @@ export const addOfferProduct = async (req, res) => {
     }
 
     const productId = `PROD_${generateProductId()}`;
-    const qrData = {
-      productId,
-      type: "PRODUCT_QR",
-      timestamp: Date.now(),
-      // Add a simple hash for basic validation
-      hash: Buffer.from(`${productId}-${Date.now()}-KKD_SECRET`)
-        .toString("base64")
-        .slice(0, 16),
-    };
-    const qrCodeImage = await uploadQRToCloudinary(JSON.stringify(qrData));
+    const qrCodes = [];
+    const count = qrCount && qrCount > 0 ? parseInt(qrCount) : 1;
+
+    for (let i = 0; i < count; i++) {
+      const now = Date.now();
+      const qrCode = generateProductId();
+      const qrData = {
+        productId,
+        type: "PRODUCT_QR",
+        index: i,
+        giftCode: qrCode,
+        timestamp: now,
+        hash: Buffer.from(`${productId}-${now}-${i}-KKD_SECRET`)
+          .toString("base64")
+          .slice(0, 16),
+      };
+      console.log("qrCode: ", qrCode);
+      const qrCodeImage = await uploadQRToCloudinary(JSON.stringify(qrData));
+      console.log("QrCodeImage: ", qrCodeImage);
+      qrCodes.push({
+        qrCodeImage,
+        qrCode,
+        qrStatus: "active",
+      });
+    }
 
     const newProduct = new Offer({
       productId,
       productName,
+      description: description || "",
       category: categoryId,
-      description,
       coinReward,
       productImage: req.file.path,
-      qrCodeImage,
+      qrCodes,
+      qrCodeImage: "please refer to updated api to get the qrImage",
+      qrCode: "please refer to updated api to get the qrCode",
     });
 
     await newProduct.save();
@@ -265,9 +290,10 @@ export const addOfferProduct = async (req, res) => {
       success: true,
       message: "Product added successfully with a unique QR code.",
       data: newProduct,
+      meta: { qrCode: "not available is this api version" },
     });
   } catch (error) {
-    console.error("Add Product Error:", error);
+    console.error("Add Offer Product Error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
@@ -293,7 +319,7 @@ export const getAllOfferProducts = async (req, res) => {
 export const updateOfferProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { productName, categoryId, coinReward } = req.body;
+    const { productName, categoryId, coinReward, qrCount } = req.body;
 
     const product = await Offer.findById(id);
     if (!product) {
@@ -306,6 +332,38 @@ export const updateOfferProduct = async (req, res) => {
     if (categoryId) product.category = categoryId;
     if (coinReward) product.coinReward = coinReward;
 
+    if (!isValidQrCount(qrCount)) {
+      return res
+        .status(400)
+        .json({ message: "qrCount must be a valid number" });
+    }
+
+    const productId = product.productId;
+    const newQrCodes = [];
+    const count = qrCount && qrCount > 0 && parseInt(qrCount);
+
+    for (let i = 0; i < count; i++) {
+      const now = Date.now();
+      const qrCode = generateProductId();
+      const qrData = {
+        productId,
+        type: "PRODUCT_QR",
+        index: product.qrCodes.length + i, // naye QR ka index purane ke baad se,
+        giftCode: qrCode,
+        timestamp: now,
+        hash: Buffer.from(`${productId}-${now}-${i}-KKD_SECRET`)
+          .toString("base64")
+          .slice(0, 16),
+      };
+      const qrCodeImage = await uploadQRToCloudinary(JSON.stringify(qrData));
+      newQrCodes.push({
+        qrCodeImage,
+        qrCode,
+        qrStatus: "active",
+      });
+    }
+    product.qrCodes.push(...newQrCodes);
+
     if (req.file) {
       // Optional: Delete old image from Cloudinary
       product.productImage = req.file.path;
@@ -315,7 +373,7 @@ export const updateOfferProduct = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Product updated successfully.",
+      message: "Offer Product updated successfully.",
       data: product,
     });
   } catch (error) {
@@ -335,19 +393,6 @@ export const deleteOfferProduct = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Product not found." });
     }
-
-    // Delete images from Cloudinary
-    const productImagePublicId = `kkd/products/${
-      product.productImage.split("/").pop().split(".")[0]
-    }`;
-    const qrImagePublicId = `kkd/offerqrcodes/${
-      product.qrCodeImage.split("/").pop().split(".")[0]
-    }`;
-
-    await Promise.all([
-      cloudinary.uploader.destroy(productImagePublicId),
-      cloudinary.uploader.destroy(qrImagePublicId),
-    ]);
 
     res.status(200).json({
       success: true,

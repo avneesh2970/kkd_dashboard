@@ -10,10 +10,12 @@ import Offer from "../pages/offer/Offer";
 import Users from "../pages/users/Users";
 import KYC from "../pages/kycRequests/Kyc";
 import Products from "../pages/products/Products";
+
 import QRScanner from "../pages/qrTest/QRScanner";
 import Withdrawals from "../pages/withdrawals/Withdrawals";
 import TermsAndPrivacy from "../pages/TermsCondition/TermsAndCondition";
 import DeleteAccountForm from "../pages/deleteAccount/Delete";
+import ProductDetail from "../pages/products/ProductDetail";
 
 const AppRoutes = () => {
   return (
@@ -87,6 +89,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Products />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/products/:id"
+        element={
+          <ProtectedRoute>
+            <ProductDetail />
           </ProtectedRoute>
         }
       />

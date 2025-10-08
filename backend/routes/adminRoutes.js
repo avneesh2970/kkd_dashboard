@@ -35,6 +35,7 @@ import {
   deleteProduct,
   toggleProductStatus,
   testQRScan,
+  getSingleProduct,
 } from "../controllers/productController.js";
 import uploadProduct from "../middlewares/uploads/product.js";
 import { addOfferProduct, deleteOfferProduct, getAllOfferProducts, toggleOfferProductStatus, updateOfferProduct } from "../controllers/offerController.js";
@@ -103,6 +104,7 @@ adminRouter.post(
   addProduct
 );
 adminRouter.get("/products", authenticateAdmin, getAllProducts);
+adminRouter.get("/products/:id", authenticateAdmin, getSingleProduct);
 adminRouter.put(
   "/update-product/:id",
   authenticateAdmin,

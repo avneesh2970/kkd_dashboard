@@ -4,6 +4,7 @@ import {
   updateProfile,
   userLogin,
   userSignup,
+  sendOtp,
   updatePassword,
   uploadPanPhoto,
   uploadAadharPhoto,
@@ -31,6 +32,7 @@ const userRouter = express.Router();
 // Authentication routes
 userRouter.post("/signup", userSignup);
 userRouter.post("/login", userLogin);
+userRouter.post("/forgot-password/send-otp", sendOtp)
 
 // Protected routes
 userRouter.get("/get-user", authenticateToken, getUser);

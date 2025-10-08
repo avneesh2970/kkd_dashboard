@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Header from "../../components/header/Header";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { IoIosArrowRoundBack, IoIosClose } from "react-icons/io";
-import { FaPlus, FaTrash, FaEdit, FaDownload } from "react-icons/fa";
-import { Loader2, Power, PowerOff, AlertTriangle } from "lucide-react";
+import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
+import { Loader2, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../helpers/api/api";
 
 export default function Products() {
+  const navigate = useNavigate();
   // Main state
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -24,13 +25,10 @@ export default function Products() {
     productName: "",
     categoryId: "",
     coinReward: "",
-    qrCount:"",
+    qrCount: "",
     productImage: null,
   });
   const [imagePreview, setImagePreview] = useState(null);
-
-  // Details modal state
-  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const popupRef = useRef(null);
 
@@ -93,7 +91,7 @@ export default function Products() {
       productName: "",
       categoryId: "",
       coinReward: "",
-      qrCount:"",
+      qrCount: "",
       productImage: null,
     });
     setImagePreview(null);
@@ -103,7 +101,6 @@ export default function Products() {
   const openPopup = (product = null) => {
     if (product) {
       setEditingProduct(product);
-      console.log("....", product)
       setFormData({
         productName: product.productName,
         categoryId: product.category._id,
@@ -187,62 +184,6 @@ export default function Products() {
       }
     }
   };
-
-  const handleToggleStatus = async (id) => {
-    const toastId = toast.loading("Updating status...");
-    try {
-      await api.patch(`/api/admin/toggle-product-status/${id}`);
-      toast.success("Status updated.", { id: toastId });
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update status.", {
-        id: toastId,
-      });
-    }
-  };
-
-  const handleDownloadQR = (qrUrl, productName) => {
-    fetch(qrUrl)
-      .then((res) => res.blob())
-      .then((blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = `${productName.replace(/\s+/g, "_")}_QR.png`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-      })
-      .catch(() => toast.error("Failed to download QR code."));
-  };
-
-  // UI Components
-  const StatusBadge = ({ status }) => {
-    const statusStyles = {
-      active: {
-        bg: "bg-green-100",
-        text: "text-green-800",
-        dot: "bg-green-500",
-      },
-      scanned: { bg: "bg-blue-100", text: "text-blue-800", dot: "bg-blue-500" },
-      disabled: { bg: "bg-red-100", text: "text-red-800", dot: "bg-red-500" },
-    };
-    const current = statusStyles[status] || {
-      bg: "bg-gray-100",
-      text: "text-gray-800",
-      dot: "bg-gray-500",
-    };
-    return (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${current.bg} ${current.text}`}
-      >
-        <span className={`w-2 h-2 mr-1.5 rounded-full ${current.dot}`}></span>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -308,7 +249,7 @@ export default function Products() {
                   Coins
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  QR Status
+                  QrCount
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -343,13 +284,14 @@ export default function Products() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-yellow-600">
                     {product.coinReward}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={product.qrStatus} />
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-yellow-600">
+                    {product.qrCodes.length}
                   </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-3">
                       <button
-                        onClick={() => setSelectedProduct(product)}
+                        onClick={() => navigate(`/products/${product._id}`)}
                         className="text-blue-600 hover:text-blue-900"
                         title="View Details & QR"
                       >
@@ -362,18 +304,7 @@ export default function Products() {
                       >
                         <FaEdit />
                       </button>
-                      <button
-                        onClick={() => handleToggleStatus(product._id)}
-                        title={
-                          product.qrStatus === "active" ? "Disable" : "Enable"
-                        }
-                      >
-                        {product.qrStatus === "active" ? (
-                          <Power className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <PowerOff className="w-4 h-4 text-red-600" />
-                        )}
-                      </button>
+
                       <button
                         onClick={() => handleDelete(product._id)}
                         className="text-red-600 hover:text-red-900"
@@ -459,21 +390,21 @@ export default function Products() {
                   ))}
                 </select>
               </div>
-                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    QR Count
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={50}
-                    name="qrCount"
-                    value={formData.qrCount}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  QR Count
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  // max={50}
+                  name="qrCount"
+                  value={formData.qrCount}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Product Image
@@ -516,59 +447,6 @@ export default function Products() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Product Details Modal */}
-      {selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-xl font-semibold">Product Details</h3>
-              <button onClick={() => setSelectedProduct(null)}>
-                <IoIosClose size={28} />
-              </button>
-            </div>
-            <div className="p-6 space-y-4 text-center overflow-y-auto">
-              <h4 className="text-lg font-bold">
-                {selectedProduct.productName}
-              </h4>
-              <p className="text-sm text-gray-500">
-                {selectedProduct.category?.categoryName}
-              </p>
-              <p className="text-sm text-gray-500">
-                {selectedProduct?.qrCode}
-              </p>
-              <div className="flex justify-center">
-                <img
-                  src={selectedProduct.qrCodeImage || "/placeholder.svg"}
-                  alt="QR Code"
-                  className="w-64 h-64 border-4 border-gray-200 p-2 rounded-lg"
-                />
-              </div>
-              <p className="text-sm text-gray-600">
-                Scan this QR code to earn {selectedProduct.coinReward} coins.
-              </p>
-              <StatusBadge status={selectedProduct.qrStatus} />
-              {selectedProduct.scannedBy && (
-                <p className="text-xs text-gray-500">
-                  Scanned on:{" "}
-                  {new Date(selectedProduct.scannedAt).toLocaleString()}
-                </p>
-              )}
-              <button
-                onClick={() =>
-                  handleDownloadQR(
-                    selectedProduct.qrCodeImage,
-                    selectedProduct.productName
-                  )
-                }
-                className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2"
-              >
-                <FaDownload /> Download QR
-              </button>
-            </div>
           </div>
         </div>
       )}

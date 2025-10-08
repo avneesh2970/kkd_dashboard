@@ -17,9 +17,6 @@ const offerProductSchema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
-    description: {
-      type: String,
-    },
     coinReward: {
       type: Number,
       required: true,
@@ -29,26 +26,29 @@ const offerProductSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    // QR Management
-    qrCodeImage: {
+    description: {
       type: String,
-      required: true,
     },
-    qrStatus: {
-      type: String,
-      enum: ["active", "scanned", "disabled"],
-      default: "active",
-    },
-    // Tracking
-    scannedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
-    },
-    scannedAt: {
-      type: Date,
-      default: null,
-    },
+    qrCodes: [
+      {
+        qrCodeImage: { type: String, required: true },
+        qrCode: { type: String, required: true, unique: true },
+        qrStatus: {
+          type: String,
+          enum: ["active", "scanned", "disabled"],
+          default: "active",
+        },
+        scannedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          default: null,
+        },
+        scannedAt: {
+          type: Date,
+          default: null,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -15,6 +15,7 @@ export default function ProductAddButton() {
     productName: "",
     categoryId: "",
     coinReward: "",
+    qrCount: "",
     productImage: null,
   });
   //   const [products, setProducts] = useState([]);
@@ -30,6 +31,7 @@ export default function ProductAddButton() {
       productName: "",
       categoryId: "",
       coinReward: "",
+      qrCount: "",
       productImage: null,
     });
     setImagePreview(null);
@@ -43,6 +45,7 @@ export default function ProductAddButton() {
         productName: product.productName,
         categoryId: product.category._id,
         coinReward: product.coinReward,
+        qrCount: "",
         productImage: null, // Not editing image by default
       });
       setImagePreview(product.productImage);
@@ -110,6 +113,7 @@ export default function ProductAddButton() {
     payload.append("productName", formData.productName);
     payload.append("categoryId", formData.categoryId);
     payload.append("coinReward", formData.coinReward);
+    payload.append("qrCount", formData.qrCount);
     if (formData.productImage) {
       payload.append("productImage", formData.productImage);
     }
@@ -244,6 +248,21 @@ export default function ProductAddButton() {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  QR Count
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  // max={50}
+                  name="qrCount"
+                  value={formData.qrCount}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">

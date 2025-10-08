@@ -41,7 +41,6 @@ export const verifyToken = (req, res) => {
 export const checkProductId = async (req, res) => {
   try {
     const { productId } = req.body;
-
     if (!productId) {
       return res.status(400).json({
         success: false,
@@ -52,7 +51,7 @@ export const checkProductId = async (req, res) => {
     // Find product by productId
     const product = await Product.findOne({ productId: productId.trim() })
       .populate("category", "categoryName")
-      .populate("scannedBy", "userId fullName");
+      .populate("qrCodes.scannedBy", "userId fullName");
 
     if (!product) {
       return res.status(404).json({
@@ -60,7 +59,6 @@ export const checkProductId = async (req, res) => {
         message: `Product ID "${productId}" not found`,
       });
     }
-
     // Return product information
     res.status(200).json({
       success: true,

@@ -3,6 +3,8 @@ import { customAlphabet } from "nanoid";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import WithdrawalRequest from "../models/WithdrawalRequest.js";
+import { generateOtp } from "../helpers/utils/helperFunctions/index.js";
+import { sendMail } from "../helpers/utils/nodemailer/mailer.js";
 
 const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 16);
 
@@ -120,6 +122,77 @@ export const userLogin = async (req, res) => {
     console.error(error);
     res.status(500).json({ success: false, message: "Server Error" });
   }
+};
+
+export const sendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const otp = generateOtp();
+    const expiry = new Date(Date.now() + 5 * 60 * 1000);
+    const now = new Date();
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "user with this email not found" });
+    }
+    // Check request window (1 hour)
+    if (
+      !user.otpRequestWindowStart ||
+      now - user.otpRequestWindowStart > 60 * 60 * 1000
+    ) {
+      user.otpRequestWindowStart = now;
+      user.otpRequestCount = 0;
+    }
+    if (user.otpRequestCount >= 5) {
+      return res.status(429).json({
+        success: false,
+        message:
+          "You have reached the maximum OTP requests (5 per hour). Try again later.",
+      });
+    }
+
+    user.otp = otp;
+    user.otpExpiry = expiry;
+    user.otpRequestCount += 1;
+    await user.save();
+
+    const html = `
+    <div style="font-family: Arial; text-align: center;">
+      <h2>Your OTP Code to forget password</h2>
+      <p style="font-size: 24px; font-weight: bold;">${otp}</p>
+      <p>This OTP is valid for 5 minutes.</p>
+    </div>
+  `;
+    await sendMail(email, user.otp, html);
+    res.json({ success: true, message: "OTP sent!", otp });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+export const verifyOtp = async (req, res) => {
+  const { email, otp } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user || !user.otp || user.otpExpiry < new Date()) {
+    return res
+      .status(400)
+      .json({ success: false, message: "OTP expired or invalid" });
+  }
+
+  if (user.otp !== otp) {
+    return res.status(400).json({ success: false, message: "Incorrect OTP" });
+  }
+
+  user.otp = null;
+  user.otpExpiry = null;
+  user.otpRequestCount = 0;
+  user.otpRequestWindowStart = null;
+  await user.save();
+
+  res.json({ success: true, message: "OTP verified successfully" });
 };
 
 export const getUser = async (req, res) => {
@@ -576,7 +649,7 @@ export const createWithdrawalRequest = async (req, res) => {
       return res.status(400).json({ message: "Not enough coins to withdraw" });
     }
 
-    user.coinsEarned -= amountNumber
+    user.coinsEarned -= amountNumber;
     await user.save();
 
     const newRequest = new WithdrawalRequest({
