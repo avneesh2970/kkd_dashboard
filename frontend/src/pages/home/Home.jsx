@@ -621,7 +621,7 @@ export default function Home() {
                           {checkIdResult.data.coinReward} coins
                         </p>
                       </div>
-                      <div>
+                      {/* <div>
                         <span className="font-medium">Status:</span>
                         <span
                           className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
@@ -631,8 +631,9 @@ export default function Home() {
                           }`}
                         >
                           {getStatusBadge(checkIdResult.data.qrStatus).text}
+                          {console.log("status: ", checkIdResult.data)}
                         </span>
-                      </div>
+                      </div> */}
                     </div>
                     {checkIdResult.data.scannedBy && (
                       <div className="mt-3 pt-2 border-t border-green-200">

@@ -361,6 +361,34 @@ export const getAllProducts = async (req, res) => {
   }
 };
 
+export const getSingleProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "user id not provided" });
+    }
+    const product = await Product.findById(id)
+      .populate("category", "categoryName")
+      .sort({ createdAt: -1 });
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "user not found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Product fetched successfully.",
+      data: product,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 // 🚀 ADMIN: Update a product
 export const updateProduct = async (req, res) => {
   try {

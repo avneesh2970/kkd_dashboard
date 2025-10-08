@@ -30,9 +30,6 @@ export default function Products() {
   });
   const [imagePreview, setImagePreview] = useState(null);
 
-  // Details modal state
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  console.log("selecetedProduct: ", JSON.stringify(selectedProduct));
   const popupRef = useRef(null);
 
   // Fetch initial data (products and categories)
@@ -187,33 +184,6 @@ export default function Products() {
       }
     }
   };
-
-  // UI Components
-  // const StatusBadge = ({ status }) => {
-  //   const statusStyles = {
-  //     active: {
-  //       bg: "bg-green-100",
-  //       text: "text-green-800",
-  //       dot: "bg-green-500",
-  //     },
-  //     scanned: { bg: "bg-blue-100", text: "text-blue-800", dot: "bg-blue-500" },
-  //     disabled: { bg: "bg-red-100", text: "text-red-800", dot: "bg-red-500" },
-  //   };
-  //   const current = statusStyles[status] || {
-  //     bg: "bg-gray-100",
-  //     text: "text-gray-800",
-  //     dot: "bg-gray-500",
-  //   };
-  //   return (
-  //     <span
-  //       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${current.bg} ${current.text}`}
-  //     >
-  //       <span className={`w-2 h-2 mr-1.5 rounded-full ${current.dot}`}></span>
-  //       {status?.charAt(0).toUpperCase() + status?.slice(1)}
-  //     </span>
-  //   );
-  // };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -278,6 +248,9 @@ export default function Products() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Coins
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  QrCount
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -296,8 +269,12 @@ export default function Products() {
                         />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{product.productName}</div>
-                        <div className="text-xs text-gray-500">{product.productId}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {product.productName}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {product.productId}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -306,6 +283,9 @@ export default function Products() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-yellow-600">
                     {product.coinReward}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-yellow-600">
+                    {product.qrCodes.length}
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
