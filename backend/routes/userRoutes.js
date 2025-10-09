@@ -12,7 +12,9 @@ import {
   createWithdrawalRequest,
   getPendingWithdrawals,
   deleteUserReq,
-  deleteAppUserReq
+  deleteAppUserReq,
+  verifyOtp,
+  setNewPass
 } from "../controllers/userController.js";
 import { authenticateToken } from "../middlewares/userAuthMiddleware.js";
 import { getAllCategories } from "../controllers/adminController.js";
@@ -32,7 +34,9 @@ const userRouter = express.Router();
 // Authentication routes
 userRouter.post("/signup", userSignup);
 userRouter.post("/login", userLogin);
-userRouter.post("/forgot-password/send-otp", sendOtp)
+userRouter.post("/forgot-password/send-otp", sendOtp);
+userRouter.post("/forgot-password/verify-otp", verifyOtp);
+userRouter.post("/forgot-password/set-new-password", setNewPass);
 
 // Protected routes
 userRouter.get("/get-user", authenticateToken, getUser);

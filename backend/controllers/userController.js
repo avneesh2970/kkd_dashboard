@@ -89,9 +89,9 @@ export const userLogin = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
     }
-
     // Compare password
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (!isPasswordValid) {
       return res
         .status(401)
@@ -174,8 +174,12 @@ export const sendOtp = async (req, res) => {
 
 export const verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
+  if (!email || !otp) {
+    return res
+      .status(400)
+      .json({ success: false, message: "OTP not provided" });
+  }
   const user = await User.findOne({ email });
-
   if (!user || !user.otp || user.otpExpiry < new Date()) {
     return res
       .status(400)
@@ -193,6 +197,50 @@ export const verifyOtp = async (req, res) => {
   await user.save();
 
   res.json({ success: true, message: "OTP verified successfully" });
+};
+
+export const setNewPass = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    // Validation
+    if (!email || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and new password are required",
+      });
+    }
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Check OTP verification
+    // (Only allow password reset if OTP has been verified recently)
+    if (user.otp !== null || user.otpExpiry !== null) {
+      return res.status(400).json({
+        success: false,
+        message: "Please verify OTP before resetting password",
+      });
+    }
+
+    // Update user password
+    user.password = newPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message:
+        "Password reset successful. You can now log in with your new password.",
+    });
+  } catch (error) {
+    console.error("Error in forgotPassword:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
 };
 
 export const getUser = async (req, res) => {
@@ -259,7 +307,6 @@ export const updateProfile = async (req, res) => {
     ];
 
     restrictedFields.forEach((field) => {
-      console.log(updateData, field);
       if (updateData[field]) {
         delete updateData[field];
       }
@@ -534,7 +581,6 @@ export const uploadAadharPhoto = async (req, res) => {
 
 // 🚀 UPDATED: Upload Passbook Photo with Status
 export const uploadPassbookPhoto = async (req, res) => {
-  console.log("uplaod passbook running");
   try {
     const userId = req.user.userId;
     const { accountNumber, accountHolderName, bankName, ifscCode } = req.body;
