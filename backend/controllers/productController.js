@@ -41,7 +41,7 @@ export const getUserProducts = async (req, res) => {
 
     // Build filter object - only show active products for users
     const filter = {
-      qrStatus: "active", // Only show products that can still be scanned
+      // qrStatus: "active", // Only show products that can still be scanned
     };
 
     if (category) {
@@ -58,6 +58,8 @@ export const getUserProducts = async (req, res) => {
 
     const skip = (Number.parseInt(page) - 1) * Number.parseInt(limit);
 
+    console.log("filter: ", filter);
+
     const products = await Product.find(filter)
       .populate("category", "categoryName categoryImage")
       .select(
@@ -66,6 +68,8 @@ export const getUserProducts = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number.parseInt(limit));
+
+    console.log("products: ", products);
 
     const totalProducts = await Product.countDocuments(filter);
 
