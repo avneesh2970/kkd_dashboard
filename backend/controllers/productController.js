@@ -722,6 +722,21 @@ export const scanProductQR = async (req, res) => {
         });
       }
 
+      if (matchedQr.qrStatus !== "scanned") {
+        let user = await User.findById(matchedQr.scannedBy);
+
+        return res.status(400).json({
+          success: false,
+          message: "This qr code has been used",
+          data: {
+            scannedByName: user.fullName,
+            scannedAt: matchedQr.scannedAt,
+            productName: product.productName,
+            productImage: product.productImage,
+          },
+        });
+      }
+
       if (matchedQr.qrStatus !== "active") {
         return res.status(400).json({
           success: false,
@@ -784,7 +799,20 @@ export const scanProductQR = async (req, res) => {
           message: "QR code not found in this product.",
         });
       }
+      if (matchedQr.qrStatus !== "scanned") {
+        let user = await User.findById(matchedQr.scannedBy);
 
+        return res.status(400).json({
+          success: false,
+          message: "This qr code has been used",
+          data: {
+            scannedByName: user.fullName,
+            scannedAt: matchedQr.scannedAt,
+            productName: product.productName,
+            productImage: product.productImage,
+          },
+        });
+      }
       if (matchedQr.qrStatus !== "active") {
         return res.status(400).json({
           success: false,
