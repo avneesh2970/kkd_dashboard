@@ -722,14 +722,14 @@ export const scanProductQR = async (req, res) => {
         });
       }
 
-      if (matchedQr.qrStatus !== "scanned") {
-        let user = await User.findById(matchedQr.scannedBy);
+      if (matchedQr.qrStatus === "scanned") {
+        let scannedByuser = await User.findById(matchedQr.scannedBy);
 
         return res.status(400).json({
           success: false,
           message: "This qr code has been used",
           data: {
-            scannedByName: user.fullName,
+            scannedByName: scannedByuser.fullName,
             scannedAt: matchedQr.scannedAt,
             productName: product.productName,
             productImage: product.productImage,
@@ -799,14 +799,14 @@ export const scanProductQR = async (req, res) => {
           message: "QR code not found in this product.",
         });
       }
-      if (matchedQr.qrStatus !== "scanned") {
-        let user = await User.findById(matchedQr.scannedBy);
+      if (matchedQr.qrStatus === "scanned") {
+        let scannedByuser = await User.findById(matchedQr.scannedBy);
 
         return res.status(400).json({
           success: false,
           message: "This qr code has been used",
           data: {
-            scannedByName: user.fullName,
+            scannedByName: scannedByuser.fullName,
             scannedAt: matchedQr.scannedAt,
             productName: product.productName,
             productImage: product.productImage,
