@@ -19,6 +19,7 @@ import {
   getAllWithdrawalRequests,
   updateWithdrawalRequestStatus,
   updateUserCoin,
+  checkgiftCode,
 } from "../controllers/adminController.js";
 import { authenticateAdmin } from "../middlewares/adminAuthMiddleware.js";
 import uploadCategory from "../middlewares/uploads/category.js";
@@ -49,6 +50,7 @@ adminRouter.post("/verify-token", verifyToken);
 
 // Product ID Check Route
 adminRouter.post("/check-product-id", authenticateAdmin, checkProductId);
+adminRouter.post("/check-gift-code", authenticateAdmin, checkgiftCode);
 
 // Category routes
 adminRouter.post(

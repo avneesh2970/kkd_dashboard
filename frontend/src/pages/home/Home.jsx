@@ -17,6 +17,7 @@ const QUERY_KEYS = {
   products: ["products", "all"],
   kycStats: ["kyc", "stats"],
   checkProductId: (id) => ["product", "check", id],
+  checkGiftCode: (code) => ["giftcode", "check", code],
 };
 
 // API functions - separated for better organization
@@ -29,12 +30,15 @@ const dashboardApi = {
     api.get(`/api/admin/transaction-history?limit=${limit}`),
   checkProductId: (productId) =>
     api.post("/api/admin/check-product-id", { productId: productId.trim() }),
+  checkGiftCode: (giftCode) =>
+    api.post("/api/admin/check-gift-code", { giftCode: giftCode.trim() }),
 };
 
 export default function Home() {
   const queryClient = useQueryClient();
   const exploreRef = useRef(null);
   const checkIdRef = useRef(null);
+  const checkQrRef = useRef(null);
 
   // UI state
   const [showExploreAllPopup, setShowExploreAllPopup] = useState(false);
@@ -42,6 +46,11 @@ export default function Home() {
   const [productId, setProductId] = useState("");
   const [checkIdResult, setCheckIdResult] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [showQrPopup, setShowQrPopup] = useState(false);
+  const [giftCode, setGiftCode] = useState("");
+  const [checkQrResult, setCheckQrResult] = useState(null);
+
+  console.log("checkQrResult: ", JSON.stringify(checkQrResult));
 
   // Dashboard stats query with parallel fetching
   const {
@@ -156,6 +165,36 @@ export default function Home() {
     },
   });
 
+  // Gift code check mutation
+  const checkGiftCodeMutation = useMutation({
+    mutationFn: dashboardApi.checkGiftCode,
+    onSuccess: (response) => {
+      if (response.data.success) {
+        setCheckQrResult({
+          success: true,
+          message: response.data.message,
+          data: response.data.data,
+        });
+      } else {
+        setCheckQrResult({
+          success: false,
+          message: response.data.message,
+          data: null,
+        });
+      }
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        "Error checking Gift Code. Please try again.";
+      setCheckQrResult({
+        success: false,
+        message: errorMessage,
+        data: null,
+      });
+    },
+  });
+
   // Computed dashboard stats
   const dashboardStats = useMemo(() => {
     if (isLoadingStats) {
@@ -223,6 +262,16 @@ export default function Home() {
     checkProductMutation.mutate(productId);
   }, [productId, checkProductMutation]);
 
+  const handleCheckGiftCode = useCallback(async () => {
+    if (!giftCode.trim()) {
+      alert("Please enter a Gift Code");
+      return;
+    }
+
+    setCheckQrResult(null);
+    checkGiftCodeMutation.mutate(giftCode);
+  }, [giftCode, checkGiftCodeMutation]);
+
   const handleRefresh = useCallback(() => {
     refetchStats();
     refetchTransactions();
@@ -269,20 +318,6 @@ export default function Home() {
     }
   }, []);
 
-  // Status badge function
-  const getStatusBadge = useCallback((status) => {
-    switch (status) {
-      case "active":
-        return { color: "text-green-700", bg: "bg-green-100", text: "Active" };
-      case "scanned":
-        return { color: "text-blue-700", bg: "bg-blue-100", text: "Scanned" };
-      case "disabled":
-        return { color: "text-red-700", bg: "bg-red-100", text: "Disabled" };
-      default:
-        return { color: "text-gray-700", bg: "bg-gray-100", text: "Unknown" };
-    }
-  }, []);
-
   // Last updated display
   const lastUpdatedDisplay = useMemo(() => {
     if (!statsUpdatedAt) return null;
@@ -307,6 +342,13 @@ export default function Home() {
     setProductId("");
     checkProductMutation.reset();
   }, [checkProductMutation]);
+
+  const closeQrPopup = useCallback(() => {
+    setShowQrPopup(false);
+    setCheckQrResult(null);
+    setGiftCode("");
+    checkGiftCodeMutation.reset();
+  }, [checkGiftCodeMutation]);
 
   // Error state
   const error = statsError || transactionsError;
@@ -355,6 +397,12 @@ export default function Home() {
           </label>
         </div>
         <div className="flex gap-8">
+          <button
+            onClick={() => setShowQrPopup(true)}
+            className="border-2 border-[#333333] text-[#333333] font-semibold px-6 py-2 rounded-xl hover:bg-[#333333] hover:text-white transition text-sm"
+          >
+            Check QR
+          </button>
           <button
             onClick={() => setShowIdPopup(true)}
             className="border-2 border-[#333333] text-[#333333] font-semibold px-6 py-2 rounded-xl hover:bg-[#333333] hover:text-white transition text-sm"
@@ -672,6 +720,185 @@ export default function Home() {
                 disabled={checkProductMutation.isLoading || !productId.trim()}
               >
                 {checkProductMutation.isLoading ? "Checking..." : "Check ID"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Check QR Popup */}
+      {showQrPopup && (
+        <div className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50">
+          <div
+            ref={checkQrRef}
+            className="bg-white rounded-2xl p-6 w-[500px] max-h-[90vh] overflow-y-auto relative space-y-5 shadow-lg"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-black">Check Gift Code</h2>
+              <button
+                onClick={closeQrPopup}
+                className="text-black p-1 hover:bg-gray-200 rounded-full"
+              >
+                <IoMdClose size={20} />
+              </button>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-black">
+                Gift Code
+              </label>
+              <input
+                type="text"
+                value={giftCode}
+                onChange={(e) => setGiftCode(e.target.value)}
+                placeholder="Enter Gift Code (e.g., GIFT123ABC)"
+                className="w-full border-none outline-none bg-[#F1F4FF] rounded-lg px-4 py-3 text-sm text-black"
+                disabled={checkGiftCodeMutation.isLoading}
+                onKeyPress={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    !checkGiftCodeMutation.isLoading &&
+                    giftCode.trim()
+                  ) {
+                    handleCheckGiftCode();
+                  }
+                }}
+              />
+            </div>
+            {checkQrResult && (
+              <div
+                className={`p-4 rounded-lg border-2 ${
+                  checkQrResult.success
+                    ? "bg-green-50 border-green-200"
+                    : "bg-red-50 border-red-200"
+                }`}
+              >
+                <p
+                  className={`text-sm font-medium mb-3 ${
+                    checkQrResult.success ? "text-green-800" : "text-red-800"
+                  }`}
+                >
+                  {checkQrResult.message}
+                </p>
+                {checkQrResult.success && checkQrResult.data && (
+                  <div className="space-y-3">
+                    {/* Product and QR Images */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {checkQrResult.data.productImage && (
+                        <div>
+                          <span className="text-xs font-medium text-green-700 block mb-1">
+                            Product Image:
+                          </span>
+                          <img
+                            src={
+                              checkQrResult.data.productImage ||
+                              "/placeholder.svg"
+                            }
+                            alt="Product"
+                            className="w-full h-32 object-cover rounded-lg border border-green-200"
+                          />
+                        </div>
+                      )}
+                      {checkQrResult.data.qrCodeImage && (
+                        <div>
+                          <span className="text-xs font-medium text-green-700 block mb-1">
+                            QR Code:
+                          </span>
+                          <img
+                            src={
+                              checkQrResult.data.qrCodeImage ||
+                              "/placeholder.svg"
+                            }
+                            alt="QR Code"
+                            className="w-full h-32 object-contain rounded-lg border border-green-200 bg-white p-2"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* QR Details */}
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <span className="font-medium text-green-700">
+                          Product ID:
+                        </span>
+                        <p className="text-green-900 font-semibold">
+                          {checkQrResult.data.productId}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-green-700">
+                          Status:
+                        </span>
+                        <p
+                          className={`font-semibold inline-block px-2 py-1 rounded-full text-xs ${
+                            checkQrResult.data.qrStatus === "active"
+                              ? "bg-green-200 text-green-800"
+                              : checkQrResult.data.qrStatus === "scanned"
+                              ? "bg-blue-200 text-blue-800"
+                              : "bg-red-200 text-red-800"
+                          }`}
+                        >
+                          {checkQrResult.data.qrStatus?.toUpperCase()}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-green-700">
+                          Coin Value:
+                        </span>
+                        <p className="text-green-900 font-semibold">
+                          {checkQrResult.data.coin} coins
+                        </p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-green-700">
+                          Created At:
+                        </span>
+                        <p className="text-green-900">
+                          {formatDate(checkQrResult.data.qrCreatedAt)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Scanned Info (if available) */}
+                    {checkQrResult.data.scannedBy && (
+                      <div className="mt-3 pt-3 border-t border-green-200">
+                        <span className="text-xs font-medium text-green-700 block mb-1">
+                          Scanned Information:
+                        </span>
+                        <div className="text-xs space-y-1">
+                          <p className="text-green-900">
+                            <span className="font-medium">Scanned by:</span>{" "}
+                            {checkQrResult.data.scannedBy}
+                          </p>
+                          <p className="text-green-900">
+                            <span className="font-medium">Scanned at:</span>{" "}
+                            {formatDate(checkQrResult.data.scannedAt)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => {
+                  setGiftCode("");
+                  setCheckQrResult(null);
+                  checkGiftCodeMutation.reset();
+                }}
+                className="flex-1 border border-black rounded-lg py-2 text-sm font-semibold hover:bg-gray-100 transition-colors"
+                disabled={checkGiftCodeMutation.isLoading}
+              >
+                Clear
+              </button>
+              <button
+                onClick={handleCheckGiftCode}
+                className="flex-1 bg-black text-white rounded-lg py-2 text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={checkGiftCodeMutation.isLoading || !giftCode.trim()}
+              >
+                {checkGiftCodeMutation.isLoading ? "Checking..." : "Check Code"}
               </button>
             </div>
           </div>

@@ -851,7 +851,8 @@ export const updateUserCoin = async (req, res) => {
   try {
     const { id } = req.params;
     const { coinsEarned } = req.body;
-    if (!id || !coinsEarned) {
+    console.log("frontend received data: ", coinsEarned);
+    if (!id || coinsEarned === undefined || coinsEarned === null) {
       return res.status(404).json({
         message: "please provide the required info",
       });
@@ -866,6 +867,7 @@ export const updateUserCoin = async (req, res) => {
         .status(400)
         .json({ message: "please provide valid coin amount" });
     }
+    console.log("coines aened:", coinsEarned);
     user.coinsEarned = coinsEarned;
     user.save();
     return res.status(200).json({
@@ -873,7 +875,45 @@ export const updateUserCoin = async (req, res) => {
       message: "coins updated Successfully",
     });
   } catch (error) {
-    console.error("Error updating user coins", err);
+    console.error("Error updating user coins", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const checkgiftCode = async (req, res) => {
+  try {
+    const { giftCode } = req.body;
+    let product = await Product.findOne({ "qrCodes.qrCode": giftCode });
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product Not Found",
+      });
+    }
+    const matchedQrs = product.qrCodes.filter((qr) => qr.qrCode === giftCode);
+    let matchedQr = matchedQrs[0];
+
+    return res.status(200).json({
+      success: true,
+      message: "qr data fetched successfully",
+      data: {
+        productId: product.productName,
+        qrCreatedAt: matchedQr.createdAt,
+        qrStatus: matchedQr.qrStatus,
+        scannedBy: matchedQr.scannedBy,
+        scannedAt: matchedQr.scannedAt,
+        coin: product.coinReward,
+        category: product.category,
+        description: product.description,
+        productImage: product.productImage,
+        qrCodeImage: matchedQr.qrCodeImage,
+      },
+    });
+  } catch (error) {
+    console.error("Check Product ID Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };
