@@ -5,7 +5,7 @@ import { FaArrowRightLong } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import Header from "../../components/header/Header";
 import { IoMdClose } from "react-icons/io";
-import { ChevronRight, Plus } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { api } from "../../helpers/api/api";
 import ProductAddButton from "../../components/productAddPopup/ProductAddButton";
 
@@ -37,20 +37,14 @@ const dashboardApi = {
 export default function Home() {
   const queryClient = useQueryClient();
   const exploreRef = useRef(null);
-  const checkIdRef = useRef(null);
   const checkQrRef = useRef(null);
 
   // UI state
   const [showExploreAllPopup, setShowExploreAllPopup] = useState(false);
-  const [showIdPopup, setShowIdPopup] = useState(false);
-  const [productId, setProductId] = useState("");
-  const [checkIdResult, setCheckIdResult] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [showQrPopup, setShowQrPopup] = useState(false);
   const [giftCode, setGiftCode] = useState("");
   const [checkQrResult, setCheckQrResult] = useState(null);
-
-  console.log("checkQrResult: ", JSON.stringify(checkQrResult));
 
   // Dashboard stats query with parallel fetching
   const {
@@ -133,36 +127,6 @@ export default function Home() {
     refetchInterval: autoRefresh ? 30 * 1000 : false, // 30 seconds if auto-refresh is on
     refetchOnWindowFocus: true,
     retry: 2,
-  });
-
-  // Product ID check mutation
-  const checkProductMutation = useMutation({
-    mutationFn: dashboardApi.checkProductId,
-    onSuccess: (response) => {
-      if (response.data.success) {
-        setCheckIdResult({
-          success: true,
-          message: response.data.message,
-          data: response.data.data,
-        });
-      } else {
-        setCheckIdResult({
-          success: false,
-          message: response.data.message,
-          data: null,
-        });
-      }
-    },
-    onError: (error) => {
-      const errorMessage =
-        error.response?.data?.message ||
-        "Error checking Product ID. Please try again.";
-      setCheckIdResult({
-        success: false,
-        message: errorMessage,
-        data: null,
-      });
-    },
   });
 
   // Gift code check mutation
@@ -251,16 +215,6 @@ export default function Home() {
     return [];
   }, [dashboardData, isLoadingStats, statsError]);
 
-  // Handlers
-  const handleCheckId = useCallback(async () => {
-    if (!productId.trim()) {
-      alert("Please enter a Product ID");
-      return;
-    }
-
-    setCheckIdResult(null);
-    checkProductMutation.mutate(productId);
-  }, [productId, checkProductMutation]);
 
   const handleCheckGiftCode = useCallback(async () => {
     if (!giftCode.trim()) {
@@ -336,13 +290,6 @@ export default function Home() {
     setShowExploreAllPopup(false);
   }, []);
 
-  const closeIdPopup = useCallback(() => {
-    setShowIdPopup(false);
-    setCheckIdResult(null);
-    setProductId("");
-    checkProductMutation.reset();
-  }, [checkProductMutation]);
-
   const closeQrPopup = useCallback(() => {
     setShowQrPopup(false);
     setCheckQrResult(null);
@@ -402,12 +349,6 @@ export default function Home() {
             className="border-2 border-[#333333] text-[#333333] font-semibold px-6 py-2 rounded-xl hover:bg-[#333333] hover:text-white transition text-sm"
           >
             Check QR
-          </button>
-          <button
-            onClick={() => setShowIdPopup(true)}
-            className="border-2 border-[#333333] text-[#333333] font-semibold px-6 py-2 rounded-xl hover:bg-[#333333] hover:text-white transition text-sm"
-          >
-            Check ID
           </button>
           <button
             onClick={() => setShowExploreAllPopup(true)}
@@ -590,137 +531,6 @@ export default function Home() {
                   <ChevronRight size={20} />
                 </Link>
               ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Check ID Popup */}
-      {showIdPopup && (
-        <div className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50">
-          <div
-            ref={checkIdRef}
-            className="bg-white rounded-2xl p-6 w-[450px] relative space-y-5 shadow-lg"
-          >
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-black">Check Product ID</h2>
-              <button
-                onClick={closeIdPopup}
-                className="text-black p-1 hover:bg-gray-200 rounded-full"
-              >
-                <IoMdClose size={20} />
-              </button>
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-black">
-                Product ID
-              </label>
-              <input
-                type="text"
-                value={productId}
-                onChange={(e) => setProductId(e.target.value)}
-                placeholder="Enter Product ID (e.g., PROD_ABC123XYZ)"
-                className="w-full border-none outline-none bg-[#F1F4FF] rounded-lg px-4 py-3 text-sm text-black"
-                disabled={checkProductMutation.isLoading}
-                onKeyPress={(e) => {
-                  if (
-                    e.key === "Enter" &&
-                    !checkProductMutation.isLoading &&
-                    productId.trim()
-                  ) {
-                    handleCheckId();
-                  }
-                }}
-              />
-            </div>
-            {checkIdResult && (
-              <div
-                className={`p-4 rounded-lg border-2 ${
-                  checkIdResult.success
-                    ? "bg-green-50 border-green-200"
-                    : "bg-red-50 border-red-200"
-                }`}
-              >
-                <p
-                  className={`text-sm font-medium mb-2 ${
-                    checkIdResult.success ? "text-green-800" : "text-red-800"
-                  }`}
-                >
-                  {checkIdResult.message}
-                </p>
-                {checkIdResult.success && checkIdResult.data && (
-                  <div className="space-y-2 text-xs text-green-700">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <span className="font-medium">Product:</span>
-                        <p className="text-green-800">
-                          {checkIdResult.data.productName}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Category:</span>
-                        <p className="text-green-800">
-                          {checkIdResult.data.category}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Coin Reward:</span>
-                        <p className="text-green-800">
-                          {checkIdResult.data.coinReward} coins
-                        </p>
-                      </div>
-                      {/* <div>
-                        <span className="font-medium">Status:</span>
-                        <span
-                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                            getStatusBadge(checkIdResult.data.qrStatus).bg
-                          } ${
-                            getStatusBadge(checkIdResult.data.qrStatus).color
-                          }`}
-                        >
-                          {getStatusBadge(checkIdResult.data.qrStatus).text}
-                          {console.log("status: ", checkIdResult.data)}
-                        </span>
-                      </div> */}
-                    </div>
-                    {checkIdResult.data.scannedBy && (
-                      <div className="mt-3 pt-2 border-t border-green-200">
-                        <span className="font-medium">Scanned by:</span>
-                        <p className="text-green-800">
-                          {checkIdResult.data.scannedBy.name} (
-                          {checkIdResult.data.scannedBy.userId})
-                        </p>
-                        <p className="text-green-600">
-                          on {formatDate(checkIdResult.data.scannedAt)}
-                        </p>
-                      </div>
-                    )}
-                    <div className="mt-2 text-xs text-green-600">
-                      Created: {formatDate(checkIdResult.data.createdAt)}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="flex gap-3 pt-1">
-              <button
-                onClick={() => {
-                  setProductId("");
-                  setCheckIdResult(null);
-                  checkProductMutation.reset();
-                }}
-                className="flex-1 border border-black rounded-lg py-2 text-sm font-semibold hover:bg-gray-100 transition-colors"
-                disabled={checkProductMutation.isLoading}
-              >
-                Clear
-              </button>
-              <button
-                onClick={handleCheckId}
-                className="flex-1 bg-black text-white rounded-lg py-2 text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                disabled={checkProductMutation.isLoading || !productId.trim()}
-              >
-                {checkProductMutation.isLoading ? "Checking..." : "Check ID"}
-              </button>
             </div>
           </div>
         </div>

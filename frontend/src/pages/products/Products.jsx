@@ -457,8 +457,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Header from "../../components/header/Header";
 import { Link, useNavigate } from "react-router-dom";
-import { IoIosArrowRoundBack, IoIosClose } from "react-icons/io";
-import { FaPlus, FaTrash, FaEdit, FaDownload, FaFilter } from "react-icons/fa";
+import { IoIosArrowRoundBack, IoIosClose, IoMdClose } from "react-icons/io";
+import {
+  FaPlus,
+  FaTrash,
+  FaEdit,
+  FaDownload,
+  FaFilter,
+  FaSearch,
+} from "react-icons/fa";
 import { Loader2, AlertTriangle, Search, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../helpers/api/api";
@@ -481,6 +488,10 @@ export default function Products() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [showIdPopup, setShowIdPopup] = useState(false);
+  const [checkIdResult, setCheckIdResult] = useState(null);
+  const [productId, setProductId] = useState("");
+  const [productLoading, setProductLoading] = useState(false);
   const [formData, setFormData] = useState({
     productName: "",
     categoryId: "",
@@ -491,6 +502,7 @@ export default function Products() {
   const [imagePreview, setImagePreview] = useState(null);
 
   const popupRef = useRef(null);
+  const checkIdRef = useRef(null);
 
   // Fetch initial data (products and categories)
   const fetchData = useCallback(async () => {
@@ -708,6 +720,54 @@ export default function Products() {
     }
   };
 
+  const handleCheckId = async () => {
+    if (!productId.trim()) {
+      alert("Please enter a Product ID");
+      return;
+    }
+    setProductLoading(true);
+    try {
+      const response = await api.post("/api/admin/check-product-id", {
+        productId: productId.trim(),
+      });
+      setCheckIdResult({
+        success: true,
+        message: response.data.message,
+        data: response.data.data,
+      });
+    } catch (error) {
+      alert(error?.response?.data?.message || "error in fetching product")
+    } finally {
+      setProductLoading(false);
+    }
+  };
+
+  const closeIdPopup = () => {
+    setShowIdPopup(false);
+    setCheckIdResult(null);
+    setProductId("");
+  };
+
+  const formatDate = (dateString) => {
+    try {
+      if (!dateString) return "N/A";
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+
+      return date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Error";
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -751,6 +811,12 @@ export default function Products() {
           Product Management ({filteredProducts.length} of {products.length})
         </h2>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowIdPopup(true)}
+            className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
+          >
+            <FaSearch /> Check ID
+          </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
@@ -1093,6 +1159,123 @@ export default function Products() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showIdPopup && (
+        <div className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50">
+          <div
+            ref={checkIdRef}
+            className="bg-white rounded-2xl p-6 w-[450px] relative space-y-5 shadow-lg"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-black">Check Product ID</h2>
+              <button
+                onClick={closeIdPopup}
+                className="text-black p-1 hover:bg-gray-200 rounded-full"
+              >
+                <IoMdClose size={20} />
+              </button>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-black">
+                Product ID
+              </label>
+              <input
+                type="text"
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+                placeholder="Enter Product ID (e.g., PROD_ABC123XYZ)"
+                className="w-full border-none outline-none bg-[#F1F4FF] rounded-lg px-4 py-3 text-sm text-black"
+                disabled={productLoading}
+                onKeyPress={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    !productLoading &&
+                    productId.trim()
+                  ) {
+                    handleCheckId();
+                  }
+                }}
+              />
+            </div>
+            {checkIdResult && (
+              <div
+                className={`p-4 rounded-lg border-2 ${
+                  checkIdResult.success
+                    ? "bg-green-50 border-green-200"
+                    : "bg-red-50 border-red-200"
+                }`}
+              >
+                <p
+                  className={`text-sm font-medium mb-2 ${
+                    checkIdResult.success ? "text-green-800" : "text-red-800"
+                  }`}
+                >
+                  {checkIdResult.message}
+                </p>
+                {checkIdResult.success && checkIdResult.data && (
+                  <div className="space-y-2 text-xs text-green-700">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="font-medium">Product:</span>
+                        <p className="text-green-800">
+                          {checkIdResult.data.productName}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="font-medium">Category:</span>
+                        <p className="text-green-800">
+                          {checkIdResult.data.category}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="font-medium">Coin Reward:</span>
+                        <p className="text-green-800">
+                          {checkIdResult.data.coinReward} coins
+                        </p>
+                      </div>
+                    </div>
+                    {checkIdResult.data.scannedBy && (
+                      <div className="mt-3 pt-2 border-t border-green-200">
+                        <span className="font-medium">Scanned by:</span>
+                        <p className="text-green-800">
+                          {checkIdResult.data.scannedBy.name} (
+                          {checkIdResult.data.scannedBy.userId})
+                        </p>
+                        <p className="text-green-600">
+                          on {formatDate(checkIdResult.data.scannedAt)}
+                        </p>
+                      </div>
+                    )}
+                    <div className="mt-2 text-xs text-green-600">
+                      Created: {formatDate(checkIdResult.data.createdAt)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => {
+                  setProductId("");
+                  setCheckIdResult(null);
+                  // checkProductMutation.reset();
+                }}
+                className="flex-1 border border-black rounded-lg py-2 text-sm font-semibold hover:bg-gray-100 transition-colors"
+                disabled={productLoading}
+              >
+                Clear
+              </button>
+              <button
+                onClick={handleCheckId}
+                className="flex-1 bg-black text-white rounded-lg py-2 text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={productLoading || !productId.trim()}
+              >
+                {productLoading ? "Checking..." : "Check ID"}
+              </button>
+            </div>
           </div>
         </div>
       )}
