@@ -17,7 +17,6 @@ export const verifyUserExists = async (req, res) => {
         .status(404)
         .json({ success: false, message: "user not found" });
     }
-    console.log(user);
     return res.status(200).json({
       success: true,
       message: "user is valid and exits in database",
