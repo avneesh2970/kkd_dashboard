@@ -14,7 +14,8 @@ import {
   deleteUserReq,
   deleteAppUserReq,
   verifyOtp,
-  setNewPass
+  setNewPass,
+  verifyUserExists,
 } from "../controllers/userController.js";
 import { authenticateToken } from "../middlewares/userAuthMiddleware.js";
 import { getAllCategories } from "../controllers/adminController.js";
@@ -25,13 +26,20 @@ import {
   uploadPassbook,
 } from "../middlewares/uploads/documents.js";
 import { getAllPromotions } from "../controllers/promotionController.js";
-import { getFeaturedProducts, getUserProductById, getUserProducts, getUserProductsByCategory, scanProductQR } from "../controllers/productController.js";
+import {
+  getFeaturedProducts,
+  getUserProductById,
+  getUserProducts,
+  getUserProductsByCategory,
+  scanProductQR,
+} from "../controllers/productController.js";
 import { getUserOfferProducts } from "../controllers/offerController.js";
 import uploadProfileAndPassbook from "../middlewares/uploads/passAndProfile.js";
 
 const userRouter = express.Router();
 
 // Authentication routes
+userRouter.get("/authenticate", authenticateToken, verifyUserExists);
 userRouter.post("/signup", userSignup);
 userRouter.post("/login", userLogin);
 userRouter.post("/forgot-password/send-otp", sendOtp);
@@ -44,10 +52,26 @@ userRouter.get("/get-categories", authenticateToken, getAllCategories);
 userRouter.get("/get-promotions", authenticateToken, getAllPromotions);
 userRouter.get("/get-products", authenticateToken, getUserProducts);
 userRouter.get("/get-offer-products", authenticateToken, getUserOfferProducts);
-userRouter.get("/get-product/:productId", authenticateToken, getUserProductById);
-userRouter.get("/get-products-by-category/:categoryId", authenticateToken, getUserProductsByCategory);
-userRouter.get("/get-featured-products", authenticateToken, getFeaturedProducts);
-userRouter.get("/get-pending-withdrawals", authenticateToken, getPendingWithdrawals)
+userRouter.get(
+  "/get-product/:productId",
+  authenticateToken,
+  getUserProductById
+);
+userRouter.get(
+  "/get-products-by-category/:categoryId",
+  authenticateToken,
+  getUserProductsByCategory
+);
+userRouter.get(
+  "/get-featured-products",
+  authenticateToken,
+  getFeaturedProducts
+);
+userRouter.get(
+  "/get-pending-withdrawals",
+  authenticateToken,
+  getPendingWithdrawals
+);
 
 // Profile update routes
 // userRouter.put(
@@ -87,15 +111,19 @@ userRouter.post(
   uploadPassbookPhoto
 );
 
-userRouter.post("/create-withdrawal-req", authenticateToken, createWithdrawalRequest)
+userRouter.post(
+  "/create-withdrawal-req",
+  authenticateToken,
+  createWithdrawalRequest
+);
 
 // QR Scan Route
-userRouter.post("/scan-qr", authenticateToken, scanProductQR)
+userRouter.post("/scan-qr", authenticateToken, scanProductQR);
 
 //delete user
 // userRouter.delete("/request-delete", authenticateToken, deleteUserReq)
-userRouter.delete("/request-delete", deleteUserReq)
+userRouter.delete("/request-delete", deleteUserReq);
 
-userRouter.delete("/app/request-delete", authenticateToken, deleteAppUserReq)
+userRouter.delete("/app/request-delete", authenticateToken, deleteAppUserReq);
 
 export default userRouter;

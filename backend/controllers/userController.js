@@ -8,6 +8,26 @@ import { sendMail } from "../helpers/utils/nodemailer/mailer.js";
 
 const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 16);
 
+export const verifyUserExists = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const user = await User.findOne({ userId });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "user not found" });
+    }
+    console.log(user);
+    return res.status(200).json({
+      success: true,
+      message: "user is valid and exits in database",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
 export const userSignup = async (req, res) => {
   try {
     const { fullName, phone, email, password } = req.body;
