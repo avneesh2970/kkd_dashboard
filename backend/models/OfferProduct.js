@@ -47,6 +47,10 @@ const offerProductSchema = new mongoose.Schema(
           type: Date,
           default: null,
         },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
   },

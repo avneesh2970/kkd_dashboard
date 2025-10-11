@@ -394,9 +394,15 @@ export const getSingleProduct = async (req, res) => {
         .status(400)
         .json({ success: false, message: "user id not provided" });
     }
-    const product = await Product.findById(id)
+    let product = await Product.findById(id)
       .populate("category", "categoryName")
       .sort({ createdAt: -1 });
+
+    if (!product) {
+      product = await Offer.findById(id)
+        .populate("category", "categoryName")
+        .sort({ createdAt: -1 });
+    }
 
     if (!product) {
       return res.status(404).json({
