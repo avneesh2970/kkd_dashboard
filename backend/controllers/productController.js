@@ -6,6 +6,7 @@ import { customAlphabet } from "nanoid";
 import qrcode from "qrcode";
 import Offer from "../models/OfferProduct.js";
 import { isValidQrCount } from "../helpers/utils/helperFunctions/index.js";
+import { createCanvas, loadImage } from "canvas";
 
 const generateProductId = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -14,6 +15,7 @@ const generateProductId = customAlphabet(
 
 const uploadQRToCloudinary = async (data) => {
   try {
+    const dataParsed = JSON.parse(data);
     const qrImage = await qrcode.toDataURL(data, {
       errorCorrectionLevel: "H",
       type: "image/png",
@@ -24,7 +26,26 @@ const uploadQRToCloudinary = async (data) => {
         light: "#FFFFFF",
       },
     });
-    const result = await cloudinary.uploader.upload(qrImage, {
+
+    // Load QR image onto canvas
+    const qr = await loadImage(qrImage);
+
+    const canvas = createCanvas(300, 350); // extra height for text
+    const ctx = canvas.getContext("2d");
+
+    // Draw QR code
+    ctx.drawImage(qr, 0, 0, 300, 300);
+
+    // Draw gift code text below
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 20px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(dataParsed.giftCode, 150, 335); // x=center, y=just below QR
+
+    // Export final image as base64
+    const finalqrImage = canvas.toDataURL("image/png");
+
+    const result = await cloudinary.uploader.upload(finalqrImage, {
       folder: "kkd/qrcodes",
     });
     return result.secure_url;

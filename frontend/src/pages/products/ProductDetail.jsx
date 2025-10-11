@@ -570,6 +570,7 @@ export default function ProductDetail() {
 
     try {
       // Fetch all QR code images and add to ZIP
+      // eslint-disable-next-line no-unused-vars
       const downloadPromises = qrCodes.map(async (qr, index) => {
         try {
           const response = await fetch(qr.qrCodeImage);
