@@ -3,13 +3,23 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "../../helpers/cloudinary/cloudinary.js";
 
 // PAN Photo Upload Configuration
+// const panStorage = new CloudinaryStorage({
+//   cloudinary: cloudinary,
+//   params: {
+//     folder: "kkd/documents/pan",
+//     allowed_formats: ["jpg", "jpeg", "png", "pdf", "webp", "avif"],
+//     transformation: [{ quality: "auto" }],
+//   },
+// });
 const panStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
+  cloudinary,
+  params: async (req, file) => ({
     folder: "kkd/documents/pan",
     allowed_formats: ["jpg", "jpeg", "png", "pdf", "webp", "avif"],
-    transformation: [{ quality: "auto" }],
-  },
+    transformation:
+      file.mimetype === "application/pdf" ? undefined : [{ quality: "auto" }],
+    resource_type: file.mimetype === "application/pdf" ? "raw" : "image",
+  }),
 });
 
 // Aadhar Photo Upload Configuration
