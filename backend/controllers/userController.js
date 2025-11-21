@@ -710,6 +710,11 @@ export const createWithdrawalRequest = async (req, res) => {
       });
     }
 
+    if (amount < 500)
+      return res
+        .status(400)
+        .json({ message: "Minimum withdrawl coins must be atleast 500" });
+
     if (user.coinsEarned < amountNumber) {
       return res.status(400).json({ message: "Not enough coins to withdraw" });
     }
