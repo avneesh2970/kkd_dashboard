@@ -856,7 +856,13 @@ export default function ProductDetail() {
                           Download Selected ({selectedQRs.length})
                         </button>
                         <button
-                          onClick={() => printSelectedQRs(filteredQRCodes)}
+                          onClick={() =>
+                            printSelectedQRs(
+                              filteredQRCodes.filter((qr) =>
+                                selectedQRs.includes(qr._id)
+                              )
+                            )
+                          }
                           disabled={selectedQRs.length === 0}
                           className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                         >
