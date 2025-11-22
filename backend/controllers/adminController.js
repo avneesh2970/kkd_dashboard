@@ -771,68 +771,68 @@ export const getAllWithdrawalRequests = async (req, res) => {
   }
 };
 
-export const updateWithdrawalRequestStatus = async (req, res) => {
-  try {
-    const { id } = req.params; // request ID
-    const { status } = req.body; // expected: "approved" or "rejected"
+// export const updateWithdrawalRequestStatus = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { status } = req.body;
 
-    if (!["approved", "rejected"].includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
-    }
+//     if (!["approved", "rejected", "completed"].includes(status)) {
+//       return res.status(400).json({ message: "Invalid status" });
+//     }
 
-    const request = await WithdrawalRequest.findById(id).populate("user");
+//     const request = await WithdrawalRequest.findById(id).populate("user");
 
-    if (!request) {
-      return res.status(404).json({ message: "Withdrawal request not found" });
-    }
+//     if (!request) {
+//       return res.status(404).json({ message: "Withdrawal request not found" });
+//     }
 
-    if (request.status !== "pending") {
-      return res
-        .status(400)
-        .json({ message: "This request has already been processed" });
-    }
+//     if (request.status !== "pending") {
+//       return res
+//         .status(400)
+//         .json({ message: "This request has already been processed" });
+//     }
 
-    // Update request status
-    request.status = status;
-    request.processedAt = new Date();
-    await request.save();
+//     // Update request status
+//     request.status = status;
+//     request.processedAt = new Date();
+//     await request.save();
 
-    // If approved, deduct amount from user's coins
-    if (status === "approved") {
-      // request.user.coinsEarned -= request.amount;
-      // 👇 Add to user's withdrawal history
-      request.user.withdrawalHistory.push({
-        withdrawalId: request._id,
-        amount: request.amount,
-        status: "approved",
-        processedAt: new Date(),
-      });
-      await request.user.save();
-    }
+//     // If approved, deduct amount from user's coins
+//     if (status === "approved") {
+//       // request.user.coinsEarned -= request.amount;
+//       // 👇 Add to user's withdrawal history
+//       request.user.withdrawalHistory.push({
+//         withdrawalId: request._id,
+//         amount: request.amount,
+//         status: "approved",
+//         processedAt: new Date(),
+//       });
+//       await request.user.save();
+//     }
 
-    if (status === "rejected") {
-      // ✅ Refund coins back to user
-      request.user.coinsEarned += request.amount;
+//     if (status === "rejected") {
+//       // ✅ Refund coins back to user
+//       request.user.coinsEarned += request.amount;
 
-      request.user.withdrawalHistory.push({
-        withdrawalId: request._id,
-        amount: request.amount,
-        status: "rejected",
-        processedAt: new Date(),
-      });
-      await request.user.save();
-    }
+//       request.user.withdrawalHistory.push({
+//         withdrawalId: request._id,
+//         amount: request.amount,
+//         status: "rejected",
+//         processedAt: new Date(),
+//       });
+//       await request.user.save();
+//     }
 
-    return res.status(200).json({
-      success: true,
-      message: `Withdrawal request ${status}`,
-      data: request,
-    });
-  } catch (err) {
-    console.error("Error updating withdrawal request status:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
+//     return res.status(200).json({
+//       success: true,
+//       message: `Withdrawal request ${status}`,
+//       data: request,
+//     });
+//   } catch (err) {
+//     console.error("Error updating withdrawal request status:", err);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 // // GET requests for a specific user
 // export const getUserWithdrawalRequests = async (req, res) => {
@@ -846,6 +846,83 @@ export const updateWithdrawalRequestStatus = async (req, res) => {
 //     res.status(500).json({ message: "Error fetching user's requests" });
 //   }
 // };
+
+export const updateWithdrawalRequestStatus = async (req, res) => {
+  try {
+    const { id } = req.params // request ID
+    const { status } = req.body // expected: "approved", "rejected", or "completed"
+
+    if (!["approved", "rejected", "completed"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" })
+    }
+
+    const request = await WithdrawalRequest.findById(id).populate("user")
+
+    if (!request) {
+      return res.status(404).json({ message: "Withdrawal request not found" })
+    }
+
+    if (status === "completed" && request.status !== "approved") {
+      return res.status(400).json({ message: "Only approved requests can be marked as completed" })
+    }
+
+    if (request.status !== "pending" && status !== "completed") {
+      return res.status(400).json({ message: "This request has already been processed" })
+    }
+
+    // Update request status
+    request.status = status
+    request.processedAt = new Date()
+    await request.save()
+
+    // If approved, deduct amount from user's coins
+    if (status === "approved") {
+      // request.user.coinsEarned -= request.amount;
+      // 👇 Add to user's withdrawal history
+      request.user.withdrawalHistory.push({
+        withdrawalId: request._id,
+        amount: request.amount,
+        status: "approved",
+        processedAt: new Date(),
+      })
+      await request.user.save()
+    }
+
+    if (status === "rejected") {
+      // ✅ Refund coins back to user
+      request.user.coinsEarned += request.amount
+
+      request.user.withdrawalHistory.push({
+        withdrawalId: request._id,
+        amount: request.amount,
+        status: "rejected",
+        processedAt: new Date(),
+      })
+      await request.user.save()
+    }
+
+    if (status === "completed") {
+      // Update the existing withdrawal history entry to "completed"
+      const historyEntry = request.user.withdrawalHistory.find(
+        (h) => h.withdrawalId.toString() === request._id.toString(),
+      )
+      if (historyEntry) {
+        historyEntry.status = "completed"
+        historyEntry.processedAt = new Date()
+      }
+      await request.user.save()
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Withdrawal request ${status}`,
+      data: request,
+    })
+  } catch (err) {
+    console.error("Error updating withdrawal request status:", err)
+    res.status(500).json({ message: "Internal server error" })
+  }
+}
 
 export const updateUserCoin = async (req, res) => {
   try {
