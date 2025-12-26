@@ -1095,9 +1095,9 @@ export default function KYC() {
               )}
             </div>
           ) : (
-            <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-200px)]">
+             <div className="flex flex-col lg:flex-row gap-6 min-h-0 lg:h-[calc(100vh-200px)]">
               {/* User Details Section */}
-              <div className="flex-1 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+               <div className="flex-1 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 overflow-y-auto min-h-fit">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-800">
                     User Details
@@ -1109,7 +1109,7 @@ export default function KYC() {
                     <IoIosClose size={28} />
                   </button>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-4 overflow-visible">
                   <div className="flex items-center space-x-4">
                     <img
                       src={selectedUser?.image || "/placeholder.svg"}
@@ -1355,11 +1355,11 @@ export default function KYC() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex flex-col sm:flex-row items-center justify-end gap-3 py-4 border-t border-gray-200 pb-16">
+                   <div className="sticky bottom-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 py-4 border-t border-gray-200 bg-white mt-4">
                     <button
                       onClick={handleRejectClick}
                       disabled={isLoading}
-                      className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                       className="w-full sm:w-auto px-4 py-3 sm:py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center font-medium"
                     >
                       Reject KYC
                     </button>
@@ -1368,7 +1368,7 @@ export default function KYC() {
                         handleKYCAction(selectedUser.userId, "approve")
                       }
                       disabled={isLoading}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center font-medium"
                     >
                       {isLoading ? "Processing..." : "Approve KYC"}
                     </button>
