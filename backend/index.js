@@ -27,6 +27,9 @@ app.get("/", (req, res) => {
 });
 app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRouter);
+app.get('/test', (req, res) => {
+  res.send('Test route is working!');
+});
 
 const PORT = process.env.PORT || 5000;
 
