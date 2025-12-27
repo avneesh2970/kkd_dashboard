@@ -800,87 +800,82 @@ export default function Products() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#C3E8FF] to-white px-4 sm:px-6 lg:px-10 pt-7 pb-12 space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#C3E8FF] to-white px-3 sm:px-4 md:px-6 lg:px-10 pt-4 sm:pt-7 pb-8 sm:pb-12 space-y-4 sm:space-y-6">
       <Header />
 
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <h2 className="font-semibold text-black text-lg flex items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <h2 className="font-semibold text-black text-base sm:text-lg flex items-center">
           <Link to="/">
-            <IoIosArrowRoundBack size={35} className="mr-1 text-black" />
+            <IoIosArrowRoundBack size={28} className="sm:w-[35px] sm:h-[35px] mr-1 text-black" />
           </Link>
-          Product Management ({filteredProducts.length} of {products.length})
+          <span className="truncate">
+            Product Management ({filteredProducts.length} of {products.length})
+          </span>
         </h2>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             onClick={() => setShowIdPopup(true)}
-            className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
+            className="flex items-center justify-center gap-1.5 sm:gap-2 bg-white border border-gray-300 text-gray-700 px-3 sm:px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 transition text-xs sm:text-sm flex-1 sm:flex-none min-w-[100px]"
           >
-            <FaSearch /> Check ID
+            <FaSearch className="text-xs sm:text-sm" /> Check ID
           </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
+            className="flex items-center justify-center gap-1.5 sm:gap-2 bg-white border border-gray-300 text-gray-700 px-3 sm:px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 transition text-xs sm:text-sm flex-1 sm:flex-none min-w-[100px]"
           >
-            <FaFilter /> {showFilters ? "Hide Filters" : "Show Filters"}
+            <FaFilter className="text-xs sm:text-sm" /> {showFilters ? "Hide" : "Filters"}
           </button>
           <button
             onClick={exportToCSV}
             disabled={filteredProducts.length === 0}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-1.5 sm:gap-2 bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-none min-w-[100px]"
           >
-            <FaDownload /> Export CSV
+            <FaDownload className="text-xs sm:text-sm" /> Export
           </button>
           <button
             onClick={() => openPopup()}
-            className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800 transition text-sm"
+            className="flex items-center justify-center gap-1.5 sm:gap-2 bg-black text-white px-3 sm:px-4 py-2 rounded-lg font-semibold hover:bg-gray-800 transition text-xs sm:text-sm flex-1 sm:flex-none min-w-[100px]"
           >
-            <FaPlus /> Add Product
+            <FaPlus className="text-xs sm:text-sm" /> Add
           </button>
         </div>
       </div>
 
       {showFilters && (
-        <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-800">Filters</h3>
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-between mb-2 sm:mb-4">
+            <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Filters</h3>
             <button
               onClick={clearFilters}
-              className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
             >
-              <X size={16} /> Clear All
+              <X size={14} className="sm:w-4 sm:h-4" /> Clear All
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Search */}
             <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search Products
-              </label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Search Products</label>
               <div className="relative">
-                <Search
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={18}
-                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                 <input
                   type="text"
                   placeholder="Name or ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-9 sm:pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
 
             {/* Category Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Category</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
@@ -893,31 +888,27 @@ export default function Products() {
 
             {/* Min Coins */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Min Coins
-              </label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Min Coins</label>
               <input
                 type="number"
                 placeholder="0"
                 value={minCoins}
                 onChange={(e) => setMinCoins(e.target.value)}
                 min="0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             {/* Max Coins */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Max Coins
-              </label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Max Coins</label>
               <input
                 type="number"
                 placeholder="1000"
                 value={maxCoins}
                 onChange={(e) => setMaxCoins(e.target.value)}
                 min="0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -925,12 +916,10 @@ export default function Products() {
       )}
 
       {filteredProducts.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-md p-12 text-center">
-          <AlertTriangle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No products found
-          </h3>
-          <p className="text-gray-500 mb-4">
+        <div className="bg-white rounded-xl shadow-md p-8 sm:p-12 text-center">
+          <AlertTriangle className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mb-3 sm:mb-4" />
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No products found</h3>
+          <p className="text-sm text-gray-500 mb-4">
             {searchQuery || selectedCategory || minCoins || maxCoins
               ? "Try adjusting your filters to see more results."
               : "Get started by adding your first product."}
@@ -938,139 +927,172 @@ export default function Products() {
           {(searchQuery || selectedCategory || minCoins || maxCoins) && (
             <button
               onClick={clearFilters}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
             >
               Clear Filters
             </button>
           )}
         </div>
       ) : (
-        /* Products Table */
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Coins
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    QrCount
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredProducts.map((product) => (
-                  <tr key={product._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <img
-                            className="h-10 w-10 rounded-md object-cover"
-                            src={product.productImage || "/placeholder.svg"}
-                            alt={product.productName}
-                          />
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {product.productName}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {product.productId}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.category?.categoryName || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-yellow-600">
-                      {product.coinReward}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-yellow-600">
-                      {product.qrCodes.length}
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end gap-3">
-                        <button
-                          onClick={() => navigate(`/products/${product._id}`)}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="View Details & QR"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => openPopup(product)}
-                          className="text-indigo-600 hover:text-indigo-900"
-                          title="Edit"
-                        >
-                          <FaEdit />
-                        </button>
-
-                        <button
-                          onClick={() => handleDelete(product._id)}
-                          className="text-red-600 hover:text-red-900"
-                          title="Delete"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          <div className="block md:hidden space-y-3">
+            {filteredProducts.map((product) => (
+              <div key={product._id} className="bg-white rounded-xl shadow-md p-4">
+                <div className="flex items-start gap-3">
+                  <img
+                    className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
+                    src={product.productImage || "/placeholder.svg"}
+                    alt={product.productName}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-gray-900 truncate">{product.productName}</h3>
+                    <p className="text-xs text-gray-500 truncate">{product.productId}</p>
+                    <p className="text-xs text-gray-500 mt-1">{product.category?.categoryName || "N/A"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <span className="text-xs text-gray-500">Coins</span>
+                      <p className="text-sm font-semibold text-yellow-600">{product.coinReward}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500">QR Count</span>
+                      <p className="text-sm font-semibold text-yellow-600">{product.qrCodes.length}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => navigate(`/products/${product._id}`)}
+                      className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                    >
+                      View
+                    </button>
+                    <button onClick={() => openPopup(product)} className="text-indigo-600 hover:text-indigo-900 p-1">
+                      <FaEdit size={16} />
+                    </button>
+                    <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-900 p-1">
+                      <FaTrash size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+
+          <div className="hidden md:block bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Product
+                    </th>
+                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Coins
+                    </th>
+                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      QrCount
+                    </th>
+                    <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredProducts.map((product) => (
+                    <tr key={product._id} className="hover:bg-gray-50">
+                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <img
+                              className="h-10 w-10 rounded-md object-cover"
+                              src={product.productImage || "/placeholder.svg"}
+                              alt={product.productName}
+                            />
+                          </div>
+                          <div className="ml-3 lg:ml-4">
+                            <div className="text-sm font-medium text-gray-900">{product.productName}</div>
+                            <div className="text-xs text-gray-500">{product.productId}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {product.category?.categoryName || "N/A"}
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-semibold text-yellow-600">
+                        {product.coinReward}
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-semibold text-yellow-600">
+                        {product.qrCodes.length}
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2 lg:gap-3">
+                          <button
+                            onClick={() => navigate(`/products/${product._id}`)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="View Details & QR"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => openPopup(product)}
+                            className="text-indigo-600 hover:text-indigo-900"
+                            title="Edit"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(product._id)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Add/Edit Product Popup */}
       {isPopupOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-3 sm:p-4">
           <div
             ref={popupRef}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col"
           >
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-xl font-semibold">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b">
+              <h3 className="text-lg sm:text-xl font-semibold">
                 {editingProduct ? "Edit Product" : "Add New Product"}
               </h3>
-              <button onClick={closePopup}>
-                <IoIosClose size={28} />
+              <button onClick={closePopup} className="p-1 hover:bg-gray-100 rounded-full">
+                <IoIosClose size={24} className="sm:w-7 sm:h-7" />
               </button>
             </div>
-            <form
-              onSubmit={handleSubmit}
-              className="p-6 space-y-4 overflow-y-auto"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Product Name
-                  </label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">Product Name</label>
                   <input
                     type="text"
                     name="productName"
                     value={formData.productName}
                     onChange={handleInputChange}
                     required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Coin Reward
-                  </label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">Coin Reward</label>
                   <input
                     type="number"
                     name="coinReward"
@@ -1078,20 +1100,18 @@ export default function Products() {
                     onChange={handleInputChange}
                     required
                     min="0"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Category
-                </label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700">Category</label>
                 <select
                   name="categoryId"
                   value={formData.categoryId}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
                 >
                   <option value="" disabled>
                     Select a category
@@ -1104,9 +1124,7 @@ export default function Products() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  QR Count
-                </label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700">QR Count</label>
                 <input
                   type="number"
                   min={1}
@@ -1114,15 +1132,13 @@ export default function Products() {
                   value={formData.qrCount}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Product Image
-                </label>
-                <div className="mt-1 flex items-center gap-4">
-                  <div className="w-24 h-24 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700">Product Image</label>
+                <div className="mt-1 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {imagePreview ? (
                       <img
                         src={imagePreview || "/placeholder.svg"}
@@ -1137,22 +1153,22 @@ export default function Products() {
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="block w-full text-xs sm:text-sm text-gray-500 file:mr-3 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4 file:rounded-full file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
                 </div>
               </div>
-              <div className="pt-4 flex justify-end gap-3 border-t mt-4">
+              <div className="pt-3 sm:pt-4 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 border-t mt-3 sm:mt-4">
                 <button
                   type="button"
                   onClick={closePopup}
-                  className="px-4 py-2 border rounded-lg"
+                  className="px-4 py-2 border rounded-lg text-sm w-full sm:w-auto"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-black text-white rounded-lg flex items-center gap-2 disabled:opacity-50"
+                  className="px-4 py-2 bg-black text-white rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 text-sm w-full sm:w-auto"
                 >
                   {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                   {isSubmitting ? "Saving..." : "Save Product"}
@@ -1164,89 +1180,67 @@ export default function Products() {
       )}
 
       {showIdPopup && (
-        <div className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4">
           <div
             ref={checkIdRef}
-            className="bg-white rounded-2xl p-6 w-[450px] relative space-y-5 shadow-lg"
+            className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-[450px] relative space-y-4 sm:space-y-5 shadow-lg"
           >
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-black">Check Product ID</h2>
-              <button
-                onClick={closeIdPopup}
-                className="text-black p-1 hover:bg-gray-200 rounded-full"
-              >
-                <IoMdClose size={20} />
+              <h2 className="text-lg sm:text-xl font-bold text-black">Check Product ID</h2>
+              <button onClick={closeIdPopup} className="text-black p-1 hover:bg-gray-200 rounded-full">
+                <IoMdClose size={18} className="sm:w-5 sm:h-5" />
               </button>
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-semibold text-black">
-                Product ID
-              </label>
+              <label className="text-xs sm:text-sm font-semibold text-black">Product ID</label>
               <input
                 type="text"
                 value={productId}
                 onChange={(e) => setProductId(e.target.value)}
                 placeholder="Enter Product ID (e.g., PROD_ABC123XYZ)"
-                className="w-full border-none outline-none bg-[#F1F4FF] rounded-lg px-4 py-3 text-sm text-black"
+                className="w-full border-none outline-none bg-[#F1F4FF] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-black"
                 disabled={productLoading}
                 onKeyPress={(e) => {
-                  if (
-                    e.key === "Enter" &&
-                    !productLoading &&
-                    productId.trim()
-                  ) {
-                    handleCheckId();
+                  if (e.key === "Enter" && !productLoading && productId.trim()) {
+                    handleCheckId()
                   }
                 }}
               />
             </div>
             {checkIdResult && (
               <div
-                className={`p-4 rounded-lg border-2 ${
-                  checkIdResult.success
-                    ? "bg-green-50 border-green-200"
-                    : "bg-red-50 border-red-200"
+                className={`p-3 sm:p-4 rounded-lg border-2 ${
+                  checkIdResult.success ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
                 }`}
               >
                 <p
-                  className={`text-sm font-medium mb-2 ${
-                    checkIdResult.success ? "text-green-800" : "text-red-800"
-                  }`}
+                  className={`text-xs sm:text-sm font-medium mb-2 ${checkIdResult.success ? "text-green-800" : "text-red-800"}`}
                 >
                   {checkIdResult.message}
                 </p>
                 {checkIdResult.success && checkIdResult.data && (
                   <div className="space-y-2 text-xs text-green-700">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <span className="font-medium">Product:</span>
-                        <p className="text-green-800">
-                          {checkIdResult.data.productName}
-                        </p>
+                        <p className="text-green-800">{checkIdResult.data.productName}</p>
                       </div>
                       <div>
                         <span className="font-medium">Category:</span>
-                        <p className="text-green-800">
-                          {checkIdResult.data.category}
-                        </p>
+                        <p className="text-green-800">{checkIdResult.data.category}</p>
                       </div>
                       <div>
                         <span className="font-medium">Coin Reward:</span>
-                        <p className="text-green-800">
-                          {checkIdResult.data.coinReward} coins
-                        </p>
+                        <p className="text-green-800">{checkIdResult.data.coinReward} coins</p>
                       </div>
                     </div>
                     {checkIdResult.data.scannedBy && (
-                      <div className="mt-3 pt-2 border-t border-green-200">
+                      <div className="mt-2 sm:mt-3 pt-2 border-t border-green-200">
                         <span className="font-medium">Scanned by:</span>
                         <p className="text-green-800">
-                          {checkIdResult.data.scannedBy.name} (
-                          {checkIdResult.data.scannedBy.userId})
+                          {checkIdResult.data.scannedBy.name} ({checkIdResult.data.scannedBy.userId})
                         </p>
-                        <p className="text-green-600">
-                          on {formatDate(checkIdResult.data.scannedAt)}
-                        </p>
+                        <p className="text-green-600">on {formatDate(checkIdResult.data.scannedAt)}</p>
                       </div>
                     )}
                     <div className="mt-2 text-xs text-green-600">
@@ -1256,21 +1250,20 @@ export default function Products() {
                 )}
               </div>
             )}
-            <div className="flex gap-3 pt-1">
+            <div className="flex gap-2 sm:gap-3 pt-1">
               <button
                 onClick={() => {
-                  setProductId("");
-                  setCheckIdResult(null);
-                  // checkProductMutation.reset();
+                  setProductId("")
+                  setCheckIdResult(null)
                 }}
-                className="flex-1 border border-black rounded-lg py-2 text-sm font-semibold hover:bg-gray-100 transition-colors"
+                className="flex-1 border border-black rounded-lg py-2 text-xs sm:text-sm font-semibold hover:bg-gray-100 transition-colors"
                 disabled={productLoading}
               >
                 Clear
               </button>
               <button
                 onClick={handleCheckId}
-                className="flex-1 bg-black text-white rounded-lg py-2 text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 bg-black text-white rounded-lg py-2 text-xs sm:text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 disabled={productLoading || !productId.trim()}
               >
                 {productLoading ? "Checking..." : "Check ID"}
