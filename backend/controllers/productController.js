@@ -396,12 +396,20 @@ export const getSingleProduct = async (req, res) => {
     }
     let product = await Product.findById(id)
       .populate("category", "categoryName")
-      .sort({ createdAt: -1 });
+        .populate({
+        path: "qrCodes.scannedBy",
+        select: "fullName",
+      })
+      // .sort({ createdAt: -1 });
 
     if (!product) {
       product = await Offer.findById(id)
         .populate("category", "categoryName")
-        .sort({ createdAt: -1 });
+        .populate({
+        path: "qrCodes.scannedBy",
+        select: "fullName",
+    });
+        // .sort({ createdAt: -1 });
     }
 
     if (!product) {
@@ -410,6 +418,7 @@ export const getSingleProduct = async (req, res) => {
         message: "user not found",
       });
     }
+
     res.status(200).json({
       success: true,
       message: "Product fetched successfully.",

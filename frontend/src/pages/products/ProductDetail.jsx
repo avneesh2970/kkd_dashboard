@@ -1018,7 +1018,7 @@ export default function ProductDetail() {
                             Scanned By
                           </p>
                           <p className="text-sm text-gray-900">
-                            {qr.scannedBy}
+                            {qr.scannedBy.fullName}
                           </p>
                         </div>
                       )}
